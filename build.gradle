@@ -10,10 +10,7 @@ repositories {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-//    implementation 'org.slf4j:slf4j-simple:1.4.14'
     implementation 'ch.qos.logback:logback-classic:1.4.6'
-//    implementation 'ch.qos.logback:logback-core:1.5.6'
 
 
 
