@@ -53,7 +53,7 @@ public class ConnectionThreadPool {
     public void run(Socket clientSocket) {
         var clientTask = new ClientTask(clientSocket);
         //TODO 이거 블록되니까 CompletableFuture로 변환 필요
-        Future<Integer> submit =  threadPoolExecutor.submit(() ->
+        threadPoolExecutor.submit(() ->
                 clientTask.run());
 
 

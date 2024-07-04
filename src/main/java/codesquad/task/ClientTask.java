@@ -4,6 +4,7 @@ import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.request.format.ClientRequest;
 import codesquad.exception.server.ServerErrorCode;
+import codesquad.request.format.HttpMethod;
 import codesquad.request.handler.ClientRequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
+
+import static codesquad.request.format.HttpMethod.GET;
 
 public class ClientTask {
     private static final Logger log = LoggerFactory.getLogger(ClientTask.class);
@@ -35,22 +38,23 @@ public class ClientTask {
     }
 
     // TODO Response 객체 리턴해주면 될듯?
-    public int run() {
+    public byte[] run() {
+        byte[] result = null;
         try {
             clientRequest = makeClientRequest();
             log.debug("[Client Request Info] : {}", clientRequest);
 
-            switch (clientRequest.method()) {
-                case "GET":
-                    clientRequestHandler.doGet(clientRequest);
-                    break;
+            HttpMethod requestMethod = HttpMethod.fromString(clientRequest.method());
+            switch (requestMethod) {
+                case GET -> result = clientRequestHandler.doGet(clientRequest);
+
             }
 
 
         } catch (IOException exception) {
             throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
         } catch (CustomException exception) {
-            throw ClientErrorCode.URI_TOO_LONG.exception();
+            throw exception;
         } catch (Exception exception) {
             throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
         } finally {
@@ -62,7 +66,7 @@ public class ClientTask {
         }
 
 
-        return 1;
+        return result;
     }
 
     /**
