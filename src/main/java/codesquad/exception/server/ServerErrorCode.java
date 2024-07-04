@@ -10,6 +10,14 @@ public enum ServerErrorCode {
     private HttpStatus httpStatus;
     private final String errorMessage;
 
+    public int getHttpStatusCode() {
+        return httpStatus.getStatusCode();
+    }
+
+    public String getErrorMessage() {
+        return this.errorMessage;
+    }
+
     ServerErrorCode(HttpStatus httpStatus, String errorMessage) {
         this.httpStatus = httpStatus;
         this.errorMessage = errorMessage;

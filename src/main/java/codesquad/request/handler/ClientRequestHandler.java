@@ -1,5 +1,6 @@
 package codesquad.request.handler;
 
+import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.HttpStatus;
 import codesquad.request.format.ClientRequest;
 import codesquad.request.handler.get.FileHandler;
@@ -25,13 +26,16 @@ public class ClientRequestHandler {
     }
 
     public ClientResponse doGet(ClientRequest request) throws IOException {
-        byte[] responseBody = null;
+        byte[] responseBody;
         ClientResponse clientResponse = null;
 
         if (request.uri().contains(".")) { // 파일을 원하는 경우
             String path = rootPath + filePath + request.uri();
 
             File file = new File(path);
+            if (!file.exists()) {
+                throw ClientErrorCode.NOT_FOUND.exception();
+            }
             String fileName = file.getName();
             int index = fileName.lastIndexOf('.');
             StringBuilder sb = new StringBuilder();

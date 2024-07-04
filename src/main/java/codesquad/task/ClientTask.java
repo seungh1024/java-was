@@ -54,8 +54,6 @@ public class ClientTask {
             throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
         }
 
-
-
         return clientResponse;
     }
 
@@ -75,7 +73,6 @@ public class ClientTask {
 
         // 소켓 버퍼 데이터를 빨리 가져와야 하니 우선 outputStream으로 복사한다.
         while ((readSize = inputStream.read(buffer,0,bufferSize)) != -1) {
-
             inputSize += readSize;
             if (inputSize > maxInputSize) {
                 throw ClientErrorCode.URI_TOO_LONG.exception();

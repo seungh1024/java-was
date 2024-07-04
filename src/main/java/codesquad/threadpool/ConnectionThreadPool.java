@@ -1,5 +1,7 @@
 package codesquad.threadpool;
 
+import codesquad.exception.CustomException;
+import codesquad.exception.server.ServerErrorCode;
 import codesquad.response.format.ClientResponse;
 import codesquad.task.ClientTask;
 import org.slf4j.Logger;
@@ -61,33 +63,28 @@ public class ConnectionThreadPool {
     // TODO future 로 값 받아와서 리턴하기, timeout 설정하기
     public void run(Socket clientSocket) throws IOException {
         var clientTask = new ClientTask(clientSocket);
+        clientSocket.setSoTimeout(3000);
 
-        CompletableFuture.supplyAsync(() ->  clientTask.run(), threadPoolExecutor)
-                .exceptionally(throwable ->{
-                    Exception exception = (Exception) (throwable instanceof Exception ? throwable : new Exception(throwable));
-                    try {
-                        doErrorResponse(clientSocket,exception.getMessage());
-                    } catch (IOException e) {
-                        log.error("[Client Socket Error] : {} ",exception.getMessage(),exception);
+        CompletableFuture.supplyAsync(() -> clientTask.run(), threadPoolExecutor)
+            .whenComplete((clientResponse, throwable) -> {
+                try {
+                    if (throwable != null) {
+                        doErrorResponse(clientSocket, (Exception)throwable.getCause());
+                    } else {
+                        doResponse(clientSocket, clientResponse);
                     }
-                    return null;
-                })
-                .thenAccept(responseData ->{
-                    System.out.println(responseData);
-                    try {
-                        doResponse(clientSocket, responseData);
-                    } catch (IOException exception) {
-                        log.error("[Client Socket Error] : {} ",exception.getMessage(),exception);
-                    }
-                }).whenComplete((messageBody,throwable)->{
-                    // TODO 작업 결과와 상관 없이 처리하기 -> 소켓 연결 해제 등
+                } catch (Exception exception) {
+                    log.error("[Server Error] 응답에 실패했습니다.", exception);
+                } finally {
                     try {
                         clientSocket.close();
                     } catch (Exception e) {
                         log.error("Error closing connection", e);
                     }
-                });
+                }
+            });
     }
+
 
     public void doResponse(Socket socket, ClientResponse response) throws IOException {
         var outputStream = socket.getOutputStream();
@@ -104,22 +101,37 @@ public class ConnectionThreadPool {
 
     }
 
-    public void doErrorResponse(Socket socket, String message) throws IOException {
-        var outputStream = socket.getOutputStream();
+
+
+    public void doErrorResponse(Socket socket, Exception exception) throws IOException{
+
+        int statusCode = ServerErrorCode.INTERNAL_SERVER_ERROR.getHttpStatusCode();
+        String errorName = ServerErrorCode.INTERNAL_SERVER_ERROR.name();
+        String errorMessage = exception.getMessage();
+
+        if (exception.getClass().isAssignableFrom(CustomException.class)) {
+            CustomException customException = (CustomException)exception;
+            statusCode = customException.getStatusCode();
+            errorName = customException.getErrorName();
+        }
 
         String htmlMessage = "<html>" +
-                "<head><title>" + 400 + "</title></head>" +
-                "<body>" +
-                "<h1>" + 400 + "</h1>" +
-                "<p>" + message + "</p>" +
-                "</body>" +
-                "</html>";
+            "<head><meta charset=\"UTF-8\" /></head>" +
+            "<body>" +
+            "<h1>" + statusCode + " " + errorName + "</h1>" +
+            "<p>" + errorMessage+ "</p>" +
+            "</body>" +
+            "</html>";
+        byte[] byteMessage = htmlMessage.getBytes();
+
         String responseHeader = "HTTP/1.1 " + 400 + "\r\n" +
                 "Content-Type: text/html\r\n" +
-                "Content-Length: " + htmlMessage.length() + "\r\n" +
+                "Content-Length: " + byteMessage.length + "\r\n" +
                 "\r\n";
+        var outputStream = socket.getOutputStream();
         outputStream.write(responseHeader.getBytes());
-        outputStream.write(htmlMessage.getBytes());
+        outputStream.write(byteMessage);
         outputStream.flush();
+
     }
 }

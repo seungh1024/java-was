@@ -18,7 +18,7 @@ public enum HttpStatus {
         return statusCode;
     }
 
-    public String getStatusName() {
+    public String getName() {
         return name();
     }
 }

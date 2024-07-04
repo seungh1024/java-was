@@ -18,20 +18,16 @@ public record ClientResponse (
     Map<String, Map<String,String>> headers,
     byte[] body
 ){
-    public void setDefaultHeaderOptions() {
-        System.out.println(headers);
-        headers.put("Server",Map.of("Apache",null));
-    }
 
-    public byte[] toByteArray(){
+    public byte[] toByteArray() throws UnsupportedEncodingException {
         StringBuilder sb = new StringBuilder("HTTP/1.1 ");
         sb.append(httpStatus.getStatusCode()).append(CR).append(LF);
-        sb.append(httpStatus.getStatusName()).append(CR).append(LF);
+        sb.append(httpStatus.getName()).append(CR).append(LF);
         sb.append("Content-Type: ").append(contentType).append(CR).append(LF);
         sb.append("Content-Length: ").append(body.length).append(CR).append(LF);
         sb.append(CR).append(LF);
 
-        byte[] headerBytes = sb.toString().getBytes(StandardCharsets.US_ASCII);
+        byte[] headerBytes = sb.toString().getBytes("UTF-8");
         byte[] result = new byte[headerBytes.length + body.length];
         int idx = 0;
         for(byte b : headerBytes) {
