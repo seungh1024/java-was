@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 
 public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
@@ -19,7 +20,7 @@ public class Main {
 
 
         while (true) { // 무한 루프를 돌며 클라이언트의 연결을 기다립니다.
-            var clientSocket = serverSocket.accept();
+            Socket clientSocket = serverSocket.accept();
             log.debug("Client connected");
             connectionThreadPool.run(clientSocket);
 

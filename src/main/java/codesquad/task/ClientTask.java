@@ -6,6 +6,7 @@ import codesquad.request.format.ClientRequest;
 import codesquad.exception.server.ServerErrorCode;
 import codesquad.request.format.HttpMethod;
 import codesquad.request.handler.ClientRequestHandler;
+import codesquad.response.format.ClientResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,20 +14,12 @@ import java.io.*;
 import java.net.Socket;
 import java.util.*;
 
-import static codesquad.request.format.HttpMethod.GET;
+import static codesquad.util.StringSeparator.*;
 
 public class ClientTask {
     private static final Logger log = LoggerFactory.getLogger(ClientTask.class);
-    private static final int bufferSize = 8 * 1024; // 8K
+    private static final int bufferSize = 8*1024;
     private static final int maxInputSize = 2 * 1024 * 1024; // chrome 2MB 길이로 제한
-    private static final String CONTENT_LENGTH = "CONTENT-LENGTH";
-    private static final String LF = "\n";
-    private static final String SPACE_SEPARATOR = " ";
-    private static final String HEADER_SEPARATOR = ":";
-    private static final String EQUAL_SEPARATOR = "=";
-    private static final String EMPTY_STRING = "";
-    private static final List<String> checkSeparator = List.of(",", ";");
-    private static final String CR = "\r";
 
     private Socket clientSocket;
     private ClientRequest clientRequest;
@@ -38,35 +31,32 @@ public class ClientTask {
     }
 
     // TODO Response 객체 리턴해주면 될듯?
-    public byte[] run() {
-        byte[] result = null;
+    public ClientResponse run() {
+        ClientResponse clientResponse = null;
         try {
             clientRequest = makeClientRequest();
             log.debug("[Client Request Info] : {}", clientRequest);
 
             HttpMethod requestMethod = HttpMethod.fromString(clientRequest.method());
             switch (requestMethod) {
-                case GET -> result = clientRequestHandler.doGet(clientRequest);
+                case GET -> clientResponse = clientRequestHandler.doGet(clientRequest);
 
             }
 
 
         } catch (IOException exception) {
+            log.error("[Server Error] : {}","IO 에러 발생");
             throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
         } catch (CustomException exception) {
             throw exception;
         } catch (Exception exception) {
+            log.error("[Server Error] : {}", exception.getMessage(), exception);
             throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
-        } finally {
-            try {
-                clientSocket.close();
-            } catch (IOException e) {
-                throw ServerErrorCode.SOCKET_CLOSED_ERROR.exception();
-            }
         }
 
 
-        return result;
+
+        return clientResponse;
     }
 
     /**
@@ -74,6 +64,7 @@ public class ClientTask {
      */
     public ClientRequest makeClientRequest() throws IOException {
         var inputStream = clientSocket.getInputStream();
+
 
         // buffer 단위로 요청 데이터를 받아온다.
         var buffer = new byte[bufferSize];
@@ -83,7 +74,8 @@ public class ClientTask {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         // 소켓 버퍼 데이터를 빨리 가져와야 하니 우선 outputStream으로 복사한다.
-        while ((readSize = inputStream.read(buffer)) > 0) {
+        while ((readSize = inputStream.read(buffer,0,bufferSize)) != -1) {
+
             inputSize += readSize;
             if (inputSize > maxInputSize) {
                 throw ClientErrorCode.URI_TOO_LONG.exception();
@@ -98,11 +90,12 @@ public class ClientTask {
         String htmlString = outputStream.toString();
 
 
-        return makeClientRequest(htmlString);
+        return getClientRequest(htmlString);
     }
 
-    public ClientRequest makeClientRequest(String htmlString) {
+    public ClientRequest getClientRequest(String htmlString) {
         var lines = htmlString.replace(CR, EMPTY_STRING).split(LF);
+
 
         var firstLine = lines[0].split(SPACE_SEPARATOR);
         var method = firstLine[0];
@@ -152,11 +145,13 @@ public class ClientTask {
                 continue;
             }
 
-            for (String target : checkSeparator) {
-                value = value.replace(target, EMPTY_STRING);
-            }
+            if (value.contains(COMMA_DELIMITER)) {
+                var commaSplitData = value.split(COMMA_DELIMITER);
+                for (String data : commaSplitData) {
+                    headerValues.put(data, null);
+                }
 
-            if (value.contains(EQUAL_SEPARATOR)) {
+            } else if (value.contains(EQUAL_SEPARATOR)) {
                 var split = value.split(EQUAL_SEPARATOR);
                 headerValues.put(split[0], split[1]);
             } else {
