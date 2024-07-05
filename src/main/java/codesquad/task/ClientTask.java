@@ -85,6 +85,7 @@ public class ClientTask {
         }
 
         String htmlString = outputStream.toString();
+        System.out.println(htmlString);
 
 
         return getClientRequest(htmlString);
@@ -103,7 +104,7 @@ public class ClientTask {
         var bodyIdx = parsingHeader(lines, headers);
         var body = getBody(lines, bodyIdx);
 
-        return new ClientRequest(method, uri, httpVersion, headers, body);
+        return new ClientRequest(method, uri, "static"+uri, httpVersion, headers, body);
     }
 
     public String getBody(String[] lines, int bodyIdx) {

@@ -65,6 +65,7 @@ public class ConnectionThreadPool {
         var clientTask = new ClientTask(clientSocket);
         clientSocket.setSoTimeout(3000);
 
+
         CompletableFuture.supplyAsync(() -> clientTask.run(), threadPoolExecutor)
             .whenComplete((clientResponse, throwable) -> {
                 try {
