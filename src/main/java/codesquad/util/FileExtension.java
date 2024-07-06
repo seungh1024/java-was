@@ -1,11 +1,11 @@
 package codesquad.util;
 
-import codesquad.exception.client.ClientErrorCode;
+import codesquad.http.request.format.HttpRequest;
 
 import java.util.Objects;
 
 public enum FileExtension {
-    HTML("text/html"),CSS("text/css"),JS("text/javascript"),ICO("image/x-icon"),PNG("image/png"),JPG("image/jpg"),SVG("image/svg+xml");
+    HTML("text/html"),CSS("text/css"),JS("text/javascript"),ICO("image/x-icon"),PNG("image/png"),JPG("image/jpg"),SVG("image/svg+xml"),NONE("none"), DYNAMIC("dynamic");
     private String contentType;
 
     FileExtension(String contentType) {
@@ -13,13 +13,15 @@ public enum FileExtension {
     }
 
     public static FileExtension fromString(String extension) {
+        var result = NONE;
         for(FileExtension value : FileExtension.values()) {
             if (Objects.equals(extension, value.name())) {
-                return value;
+                result = value;
+                break;
             }
         }
 
-        throw ClientErrorCode.NOT_FOUND.exception();
+        return result;
     }
 
     public String getContentType() {
