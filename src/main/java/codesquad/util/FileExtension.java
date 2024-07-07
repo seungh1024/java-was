@@ -13,7 +13,7 @@ public enum FileExtension {
     }
 
     public static FileExtension fromString(String extension) {
-        var result = NONE;
+        var result = DYNAMIC;
         for(FileExtension value : FileExtension.values()) {
             if (Objects.equals(extension, value.name())) {
                 result = value;

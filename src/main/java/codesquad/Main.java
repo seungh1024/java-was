@@ -1,5 +1,7 @@
 package codesquad;
 
+import codesquad.command.CommandManager;
+import codesquad.command.domain.UserDomain;
 import codesquad.webserver.ConnectionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +15,7 @@ public class Main {
     private static ConnectionHandler connectionThreadPool;
 
     public static void main(String[] args) throws IOException {
+        initCommand();
         connectionThreadPool = ConnectionHandler.getInstance();
 
         var serverSocket = new ServerSocket(8080); // 8080 포트에서 서버를 엽니다.
@@ -25,5 +28,10 @@ public class Main {
             connectionThreadPool.run(clientSocket);
         }
 
+    }
+
+    public static void initCommand() {
+        var commandManager = CommandManager.getInstance();
+        commandManager.initMethod(UserDomain.class);
     }
 }

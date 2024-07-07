@@ -1,4 +1,4 @@
-package codesquad.http.response;
+package codesquad.http.response.format;
 
 import codesquad.exception.CustomException;
 import codesquad.exception.server.ServerErrorCode;

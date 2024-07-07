@@ -81,8 +81,10 @@ public class HttpRequestParser extends Thread{
         if (uri.contains("?")) {
             return FileExtension.DYNAMIC;
         }
+
         int lastIndex = uri.lastIndexOf(".");
         var extension = uri.substring(lastIndex+1, uri.length()).toUpperCase();
+
 
         return FileExtension.fromString(extension);
     }
