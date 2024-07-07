@@ -2,6 +2,7 @@ package codesquad.webserver;
 
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.HttpStatus;
+import codesquad.http.request.dynamichandler.DynamicHandleResult;
 import codesquad.http.request.dynamichandler.DynamicResourceHandler;
 import codesquad.http.request.format.HttpMethod;
 import codesquad.http.request.format.HttpRequest;
@@ -82,8 +83,8 @@ public class ConnectionHandler {
 
                 if (!Objects.isNull(httpRequest) && Objects.isNull(throwable)) {
                     if (Objects.equals(httpRequest.fileExtension(), FileExtension.DYNAMIC)) { // 동적 요청 처리
-                        System.out.println("dynamic");
-                        DynamicResourceHandler.getInstance().handle(httpRequest);
+                        DynamicHandleResult dynamicHandleResult = DynamicResourceHandler.getInstance().handle(httpRequest);
+                        return HttpResponse.getHtmlResponse(dynamicHandleResult);
                     } else { // 정적 요청 처리애
                         if (Objects.equals(httpRequest.method(), HttpMethod.GET)) {
                             var body = StaticResourceHandler.getInstance().getStaticResource(httpRequest);
@@ -100,13 +101,13 @@ public class ConnectionHandler {
                     throw (RuntimeException) throwable;
                 }
 
-                return null;
             }).whenComplete((applyResult,throwable)->{
                 if (Objects.isNull(applyResult)) {
 
                     // return;
                 }
                 HttpResponse response = applyResult;
+
                 if (!Objects.isNull(applyResult) && Objects.isNull(throwable)) { // 정상 응답 처리
                     doResponse(clientSocket, response);
                 } else {

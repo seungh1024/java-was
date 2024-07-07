@@ -2,6 +2,8 @@ package codesquad.http;
 
 public enum HttpStatus {
     OK(200,"OK"),
+    CREATE(201,"CREATE"),
+    BAD_REQUEST(400, "BAD REQUEST"),
     METHOD_NOT_ALLOWED(405,"METHOD NOT ALLOWED"),
     URI_TOO_LONG(414,"URI TOO LONG"),
     NOT_FOUND(404, "NOT FOUND"),

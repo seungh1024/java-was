@@ -19,4 +19,5 @@ public class CustomException extends RuntimeException{
         this.statusCode = httpStatus.getStatusCode();
         this.errorName = httpStatus.getName();
     }
+
 }

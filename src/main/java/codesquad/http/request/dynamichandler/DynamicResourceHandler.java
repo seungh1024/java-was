@@ -1,5 +1,7 @@
 package codesquad.http.request.dynamichandler;
 
+import codesquad.command.domainResponse.DomainResponse;
+import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.request.dynamichandler.methodhandler.GetHandler;
 import codesquad.http.request.format.HttpRequest;
 
@@ -13,9 +15,13 @@ public class DynamicResourceHandler {
 	}
 
 	public DynamicHandleResult handle(HttpRequest httpRequest) {
+		DynamicHandleResult dynamicHandleResult = null;
+
 		switch(httpRequest.method()) {
-			case GET -> GetHandler.getInstance().doGet(httpRequest);
+			case GET -> dynamicHandleResult = GetHandler.getInstance().doGet(httpRequest);
+			default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
 		}
-		return null;
+
+		return dynamicHandleResult;
 	}
 }

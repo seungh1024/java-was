@@ -1,6 +1,7 @@
 package codesquad.http.request.dynamichandler.methodhandler;
 
 import codesquad.command.CommandManager;
+import codesquad.command.domainResponse.DomainResponse;
 import codesquad.http.request.dynamichandler.DynamicHandleResult;
 import codesquad.http.request.format.HttpRequest;
 
@@ -24,7 +25,9 @@ public class GetHandler {
 			var resources = pathAndData[1];
 			System.out.println(path);
 			System.out.println(resources);
-			CommandManager.getInstance().execute(httpRequest.method(),path);
+			DomainResponse domainResponse = CommandManager.getInstance().execute(httpRequest.method(), path, resources);
+			System.out.println("doget result success");
+			dynamicHandleResult = DynamicHandleResult.of(domainResponse);
 
 		}
 

@@ -9,4 +9,5 @@ public class StringSeparator {
     public static final String EMPTY_STRING = "";
     public static final String COMMA_DELIMITER = ",";
     public static final String CR = "\r";
+    public static final String QUERY_PARAMETER_SEPARATOR = "&";
 }

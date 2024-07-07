@@ -1,12 +1,18 @@
 package codesquad.command;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
+import codesquad.command.domainResponse.DomainResponse;
 import codesquad.command.methodannotation.Command;
 import codesquad.command.methodannotation.GetMapping;
+import codesquad.exception.CustomException;
+import codesquad.exception.client.ClientErrorCode;
+import codesquad.http.HttpStatus;
 import codesquad.http.request.format.HttpMethod;
 import codesquad.http.request.format.HttpRequest;
 
@@ -44,28 +50,38 @@ public class CommandManager {
 		}
 	}
 
-	public void execute(HttpMethod httpMethod, String path) {
+	public DomainResponse execute(HttpMethod httpMethod, String path, String resources) {
 		Method method = null;
 		switch(httpMethod) {
 			case GET -> method = findGetMethod(path);
 		}
 
 		if (method != null) {
-			System.out.println("path = "+path);
-			System.out.println("method not null");
 			try {
-				System.out.println("classInfo = "+classInfo);
 				String className = method.getDeclaringClass().getName();
 				Object instance = findInstance(className);
-				System.out.println("className = "+className);
-				System.out.println("instance = "+instance);
+
 				if (instance == null) {
 					throw new ClassNotFoundException();
 				}
-				System.out.println("instance getclass = "+instance.getClass());
-				method.invoke(instance);
-				System.out.println("invoke success");
+				System.out.println("className = " + className);
+				System.out.println("instance = " + instance);
+				Object responseBody = method.invoke(instance, resources);
+				System.out.println("!");
+				Class<?> returnType = method.getReturnType();
+				HttpStatus httpStatus = method.getAnnotation(GetMapping.class).httpStatus();
+
+				return new DomainResponse(httpStatus, Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
+					responseBody);
+
 			} catch (InvocationTargetException exception) {
+				System.out.println(exception.getCause());
+				Exception cause = (Exception)exception.getCause();
+				if (CustomException.class.isInstance(cause)) {
+					throw (CustomException) cause;
+				}
+				// String exceptionName = exception.getCause().getClass();
+
 				throw new RuntimeException(exception);
 			} catch (IllegalAccessException exception) {
 				throw new RuntimeException(exception);
@@ -73,10 +89,12 @@ public class CommandManager {
 				throw new RuntimeException(exception);
 			}
 		}
+
+		// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것
+		throw ClientErrorCode.NOT_FOUND.exception();
 	}
 
 	private Method findGetMethod(String path) {
-		System.out.println(getMethod);
 		return getMethod.get(path);
 	}
 

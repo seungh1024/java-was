@@ -3,11 +3,14 @@ package codesquad.http.response.format;
 import codesquad.exception.CustomException;
 import codesquad.exception.server.ServerErrorCode;
 import codesquad.http.HttpStatus;
+import codesquad.http.request.dynamichandler.DynamicHandleResult;
 import codesquad.util.FileExtension;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static codesquad.util.StringSeparator.*;
 
@@ -65,9 +68,19 @@ public record HttpResponse(
         return new HttpResponse(httpStatus,"HTTP/1.1", responseHeaders, byteMessage);
     }
 
-    public void setHeader(String key, String value) {
-        this.headers.put(key, value);
+    public static HttpResponse getHtmlResponse(DynamicHandleResult dynamicHandleResult) {
+
+        var responseHeaders = new HashMap<String, String>();
+        responseHeaders.put("Content-Type", dynamicHandleResult.fileExtension().getContentType() + "; charset=UTF-8");
+        byte[] body = null;
+        if (dynamicHandleResult.hasBody()) {
+            body = dynamicHandleResult.body().toString().getBytes();
+            responseHeaders.put("Content-Length", String.valueOf(body.length));
+        }
+
+        return new HttpResponse(dynamicHandleResult.httpStatus(), "HTTP/1.1", responseHeaders, body);
     }
+
 
     public byte[] toByteArray() {
         StringBuilder sb = new StringBuilder(httpVersion).append(SPACE_SEPARATOR);
@@ -78,19 +91,25 @@ public record HttpResponse(
         }
         sb.append(CR).append(LF);
 
+
         byte[] headerBytes = null;
         try{
             headerBytes = sb.toString().getBytes("UTF-8");
         } catch (UnsupportedEncodingException exception) {
 			throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
 		}
-		byte[] result = new byte[headerBytes.length + body.length];
-        int idx = 0;
-        for(byte b : headerBytes) {
-            result[idx++] = b;
-        }
-        for (byte b : body) {
-            result[idx++] = b;
+        byte[] result = null;
+        if (Objects.isNull(body)) {
+            result = headerBytes;
+        } else {
+            result = new byte[headerBytes.length + body.length];
+            int idx = 0;
+            for(byte b : headerBytes) {
+                result[idx++] = b;
+            }
+            for (byte b : body) {
+                result[idx++] = b;
+            }
         }
 
         return result;
