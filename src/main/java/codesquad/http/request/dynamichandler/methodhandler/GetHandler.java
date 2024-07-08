@@ -23,10 +23,7 @@ public class GetHandler {
 			var pathAndData = httpRequest.uri().split("\\?");
 			var path = pathAndData[0];
 			var resources = pathAndData[1];
-			System.out.println(path);
-			System.out.println(resources);
 			DomainResponse domainResponse = CommandManager.getInstance().execute(httpRequest.method(), path, resources);
-			System.out.println("doget result success");
 			dynamicHandleResult = DynamicHandleResult.of(domainResponse);
 
 		}

@@ -15,9 +15,7 @@ public class PostHandler {
     }
 
     public DynamicHandleResult doPost(HttpRequest httpRequest) {
-        System.out.println(httpRequest);
         DomainResponse domainResponse = CommandManager.getInstance().execute(httpRequest.method(), httpRequest.uri(), httpRequest.body());
-        System.out.println("doPost result success");
         return DynamicHandleResult.of(domainResponse);
     }
 }

@@ -1,21 +1,20 @@
 package codesquad.command;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import codesquad.command.annotation.redirect.Redirect;
 import codesquad.command.domainResponse.DomainResponse;
-import codesquad.command.methodannotation.Command;
-import codesquad.command.methodannotation.GetMapping;
-import codesquad.command.methodannotation.PostMapping;
+import codesquad.command.annotation.method.Command;
+import codesquad.command.annotation.method.GetMapping;
+import codesquad.command.annotation.method.PostMapping;
 import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.HttpStatus;
 import codesquad.http.request.format.HttpMethod;
-import codesquad.http.request.format.HttpRequest;
 
 public class CommandManager {
 	private static final CommandManager commandManager = new CommandManager();
@@ -61,7 +60,10 @@ public class CommandManager {
 		switch(httpMethod) {
 			case GET -> method = findGetMethod(path);
 			case POST -> method = findPostMethod(path);
+			default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
 		}
+
+
 
 		if (method != null) {
 			try {
@@ -71,10 +73,7 @@ public class CommandManager {
 				if (instance == null) {
 					throw new ClassNotFoundException();
 				}
-				System.out.println("className = " + className);
-				System.out.println("instance = " + instance);
 				Object responseBody = method.invoke(instance, resources);
-				System.out.println("!");
 				Class<?> returnType = method.getReturnType();
 				HttpStatus httpStatus = null;
 				switch (httpMethod) {
@@ -83,16 +82,24 @@ public class CommandManager {
 					default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
 				}
 
-				return new DomainResponse(httpStatus, Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
-					responseBody);
+
+				var headers = new HashMap<String,String>();
+
+				if (isRedirect(method)) {
+					Redirect annotation = method.getAnnotation(Redirect.class);
+					httpStatus = annotation.httpStatus();
+					headers.put("Location", annotation.redirection());
+				}
+
+
+				return new DomainResponse(httpStatus, headers, Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
+						responseBody);
 
 			} catch (InvocationTargetException exception) {
-				System.out.println(exception.getCause());
 				Exception cause = (Exception)exception.getCause();
 				if (CustomException.class.isInstance(cause)) {
 					throw (CustomException) cause;
 				}
-				// String exceptionName = exception.getCause().getClass();
 
 				throw new RuntimeException(exception);
 			} catch (IllegalAccessException exception) {
@@ -104,6 +111,16 @@ public class CommandManager {
 
 		// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것
 		throw ClientErrorCode.NOT_FOUND.exception();
+	}
+
+
+	private boolean isRedirect(Method method) {
+		boolean result = false;
+		if (method.isAnnotationPresent(Redirect.class)) {
+			result = true;
+		}
+
+		return result;
 	}
 
 	private Method findPostMethod(String path) {

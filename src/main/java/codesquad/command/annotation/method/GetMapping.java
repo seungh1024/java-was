@@ -1,4 +1,4 @@
-package codesquad.command.methodannotation;
+package codesquad.command.annotation.method;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

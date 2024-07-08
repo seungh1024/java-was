@@ -1,7 +1,6 @@
 package codesquad.command.domain;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.lang.reflect.RecordComponent;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -9,9 +8,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import codesquad.command.methodannotation.Command;
-import codesquad.command.methodannotation.GetMapping;
-import codesquad.command.methodannotation.PostMapping;
+import codesquad.command.annotation.method.Command;
+import codesquad.command.annotation.method.PostMapping;
+import codesquad.command.annotation.redirect.Redirect;
 import codesquad.command.model.User;
 import codesquad.command.model.UserInfo;
 import codesquad.exception.CustomException;
@@ -29,15 +28,12 @@ public class UserDomain {
 		return userDomain;
 	}
 
-	//	@GetMapping(httpStatus = HttpStatus.CREATE, path = "/user/create")
+	@Redirect(redirection = "/index.html")
 	@PostMapping(httpStatus = HttpStatus.CONFLICT, path = "/user/create")
 	public UserInfo createUser(String queryParameter) {
 		var parsingUserInfo = parsingResources(queryParameter);
 
-		System.out.println("parsingUserInfo = " + parsingUserInfo);
-
 		RecordComponent[] recordComponents = UserInfo.class.getRecordComponents();
-		System.out.println(Arrays.toString(recordComponents));
 		if (parsingUserInfo.size() != recordComponents.length) {
 			throw ClientErrorCode.PARAMETER_FORMAT_EXCEPTION.exception();
 		}
@@ -45,13 +41,11 @@ public class UserDomain {
 
 		int idx = 0;
 		for (List info : parsingUserInfo) {
-			System.out.println(info);
 			if (!Objects.equals(info.get(0), recordComponents[idx++].getName())) {
 				throw ClientErrorCode.PARAMETER_FORMAT_EXCEPTION.exception();
 			}
 		}
 
-		// System.out.println("?");
 
 		var userId = parsingUserInfo.get(0).get(1);
 		var password = parsingUserInfo.get(1).get(1);
@@ -60,13 +54,12 @@ public class UserDomain {
 		var userInfo = new UserInfo(userId, password, name, email);
 
 		User.getInstance().addUserInfo(userInfo);
-		// System.out.println("user map info = " + User.getInstance().getUserInfo(userId));
+
 		return User.getInstance().getUserInfo(userId);
 	}
 
 	public List<List<String>> parsingResources(String resources) {
 		var userData = resources.split(QUERY_PARAMETER_SEPARATOR);
-		// System.out.println(Arrays.toString(userData));
 		var parsingUserInfo = new ArrayList<List<String>>();
 
 

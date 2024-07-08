@@ -72,6 +72,9 @@ public record HttpResponse(
 
         var responseHeaders = new HashMap<String, String>();
         responseHeaders.put("Content-Type", dynamicHandleResult.fileExtension().getContentType() + "; charset=UTF-8");
+        for (Map.Entry<String, String> entry : dynamicHandleResult.headers().entrySet()) {
+            responseHeaders.put(entry.getKey(), entry.getValue());
+        }
         byte[] body = null;
         if (dynamicHandleResult.hasBody()) {
             body = dynamicHandleResult.body().toString().getBytes();

@@ -25,7 +25,6 @@ public class StaticResourceHandler {
         byte[] responseBody = null;
 
         ClassLoader classLoader = getClass().getClassLoader();
-        System.out.println("classLoader = " + classLoader);
         URL resource = classLoader.getResource("static"+request.uri());
         InputStream inputStream = classLoader.getResourceAsStream("static"+request.uri());
         if (inputStream == null) {
@@ -33,7 +32,6 @@ public class StaticResourceHandler {
         }
 //            String fileName = file.getName();
         String fileName = resource.getFile();
-        System.out.println("fileName = "+fileName);
         int index = fileName.lastIndexOf('.');
         StringBuilder sb = new StringBuilder();
         for (int i = index+1; i < fileName.length(); i++) {

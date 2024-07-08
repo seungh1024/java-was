@@ -1,4 +1,4 @@
-package codesquad.command.methodannotation;
+package codesquad.command.annotation.redirect;
 
 import codesquad.http.HttpStatus;
 
@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-public @interface PostMapping {
-    HttpStatus httpStatus();
-    String path();
+public @interface Redirect {
+    String redirection();
+    HttpStatus httpStatus() default HttpStatus.FOUND;
 }

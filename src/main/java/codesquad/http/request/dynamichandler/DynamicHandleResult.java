@@ -1,7 +1,7 @@
 package codesquad.http.request.dynamichandler;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.util.Map;
 import java.util.Objects;
 
 import codesquad.command.domainResponse.DomainResponse;
@@ -10,6 +10,7 @@ import codesquad.util.FileExtension;
 
 public record DynamicHandleResult(
 	HttpStatus httpStatus,
+	Map<String,String> headers,
 	boolean hasBody,
 	FileExtension fileExtension,
 	Object body
@@ -24,6 +25,6 @@ public record DynamicHandleResult(
 			fileExtension = FileExtension.HTML;
 		}
 
-		return new DynamicHandleResult(httpStatus, hasBody, fileExtension, body);
+		return new DynamicHandleResult(httpStatus, domainResponse.headers(), hasBody, fileExtension, body);
 	}
 }
