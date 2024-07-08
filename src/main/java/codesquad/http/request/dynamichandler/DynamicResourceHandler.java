@@ -3,6 +3,7 @@ package codesquad.http.request.dynamichandler;
 import codesquad.command.domainResponse.DomainResponse;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.request.dynamichandler.methodhandler.GetHandler;
+import codesquad.http.request.dynamichandler.methodhandler.PostHandler;
 import codesquad.http.request.format.HttpRequest;
 
 public class DynamicResourceHandler {
@@ -19,6 +20,7 @@ public class DynamicResourceHandler {
 
 		switch(httpRequest.method()) {
 			case GET -> dynamicHandleResult = GetHandler.getInstance().doGet(httpRequest);
+			case POST -> dynamicHandleResult = PostHandler.getInstance().doPost(httpRequest);
 			default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
 		}
 

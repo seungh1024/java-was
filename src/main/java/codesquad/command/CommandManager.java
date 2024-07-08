@@ -10,6 +10,7 @@ import java.util.Objects;
 import codesquad.command.domainResponse.DomainResponse;
 import codesquad.command.methodannotation.Command;
 import codesquad.command.methodannotation.GetMapping;
+import codesquad.command.methodannotation.PostMapping;
 import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.HttpStatus;
@@ -19,6 +20,7 @@ import codesquad.http.request.format.HttpRequest;
 public class CommandManager {
 	private static final CommandManager commandManager = new CommandManager();
 	private static Map<String, Method> getMethod = new HashMap<>();
+	private static Map<String, Method> postMethod = new HashMap<>();
 	private static Map<String, Object> classInfo = new HashMap<>();
 
 	private CommandManager(){}
@@ -35,6 +37,7 @@ public class CommandManager {
 					getInstanceMethod.setAccessible(true);
 					Object classInstance = getInstanceMethod.invoke(null);
 					classInfo.put(clazz.getName(), classInstance);
+					getInstanceMethod.setAccessible(false);
 				} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException exception) {
 					throw new RuntimeException(exception);
 				}
@@ -44,6 +47,9 @@ public class CommandManager {
 					if (method.isAnnotationPresent(GetMapping.class)) {
 						GetMapping get = method.getAnnotation(GetMapping.class);
 						getMethod.put(get.path(), method);
+					} else if (method.isAnnotationPresent(PostMapping.class)) {
+						PostMapping post = method.getAnnotation(PostMapping.class);
+						postMethod.put(post.path(), method);
 					}
 				}
 			}
@@ -54,6 +60,7 @@ public class CommandManager {
 		Method method = null;
 		switch(httpMethod) {
 			case GET -> method = findGetMethod(path);
+			case POST -> method = findPostMethod(path);
 		}
 
 		if (method != null) {
@@ -69,7 +76,12 @@ public class CommandManager {
 				Object responseBody = method.invoke(instance, resources);
 				System.out.println("!");
 				Class<?> returnType = method.getReturnType();
-				HttpStatus httpStatus = method.getAnnotation(GetMapping.class).httpStatus();
+				HttpStatus httpStatus = null;
+				switch (httpMethod) {
+					case GET -> httpStatus = method.getAnnotation(GetMapping.class).httpStatus();
+					case POST -> httpStatus = method.getAnnotation(PostMapping.class).httpStatus();
+					default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
+				}
 
 				return new DomainResponse(httpStatus, Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
 					responseBody);
@@ -93,6 +105,11 @@ public class CommandManager {
 		// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것
 		throw ClientErrorCode.NOT_FOUND.exception();
 	}
+
+	private Method findPostMethod(String path) {
+		return postMethod.get(path);
+	}
+
 
 	private Method findGetMethod(String path) {
 		return getMethod.get(path);

@@ -11,6 +11,7 @@ import java.util.Objects;
 
 import codesquad.command.methodannotation.Command;
 import codesquad.command.methodannotation.GetMapping;
+import codesquad.command.methodannotation.PostMapping;
 import codesquad.command.model.User;
 import codesquad.command.model.UserInfo;
 import codesquad.exception.CustomException;
@@ -28,14 +29,15 @@ public class UserDomain {
 		return userDomain;
 	}
 
-	@GetMapping(httpStatus = HttpStatus.CREATE, path = "/create")
+	//	@GetMapping(httpStatus = HttpStatus.CREATE, path = "/user/create")
+	@PostMapping(httpStatus = HttpStatus.CONFLICT, path = "/user/create")
 	public UserInfo createUser(String queryParameter) {
 		var parsingUserInfo = parsingResources(queryParameter);
 
-		// System.out.println("parsingUserInfo = "+parsingUserInfo);
+		System.out.println("parsingUserInfo = " + parsingUserInfo);
 
 		RecordComponent[] recordComponents = UserInfo.class.getRecordComponents();
-
+		System.out.println(Arrays.toString(recordComponents));
 		if (parsingUserInfo.size() != recordComponents.length) {
 			throw ClientErrorCode.PARAMETER_FORMAT_EXCEPTION.exception();
 		}
@@ -43,6 +45,7 @@ public class UserDomain {
 
 		int idx = 0;
 		for (List info : parsingUserInfo) {
+			System.out.println(info);
 			if (!Objects.equals(info.get(0), recordComponents[idx++].getName())) {
 				throw ClientErrorCode.PARAMETER_FORMAT_EXCEPTION.exception();
 			}
