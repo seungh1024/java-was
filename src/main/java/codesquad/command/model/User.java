@@ -17,12 +17,13 @@ public class User {
 	}
 
 	public void addUserInfo(UserInfo userInfo) {
-		if (!Objects.isNull(userData.get(userInfo.userId()))) {
+		UserInfo value = userData.putIfAbsent(userInfo.userId(), userInfo);
+
+		// null이 아니면 기존에 값이 있다는 것을 의미
+		if (!Objects.isNull(value)) {
 			throw ClientErrorCode.USERID_ALREADY_EXISTS.exception();
 		}
 
-		userData.compute(userInfo.userId(), (k, v) -> v == null ? userInfo : v); // null일 때만 userInfo를 넣어준다.
-		userData.put(userInfo.userId(), userInfo);
 	}
 
 	public UserInfo getUserInfo(String userId) {
