@@ -24,6 +24,8 @@ public class DynamicResourceHandler {
 			default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
 		}
 
+		System.out.println("dynamicHandlerResult = "+dynamicHandleResult);
+
 		return dynamicHandleResult;
 	}
 }

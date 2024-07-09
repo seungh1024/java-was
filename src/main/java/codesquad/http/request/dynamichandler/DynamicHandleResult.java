@@ -25,6 +25,10 @@ public record DynamicHandleResult(
 			fileExtension = FileExtension.HTML;
 		}
 
+		for (Map.Entry<String, String> entry : domainResponse.cookie().entrySet()) {
+			domainResponse.headers().put("Set-Cookie", entry.getKey()+"="+entry.getValue()+ "; Path=/");
+		}
+
 		return new DynamicHandleResult(httpStatus, domainResponse.headers(), hasBody, fileExtension, body);
 	}
 }

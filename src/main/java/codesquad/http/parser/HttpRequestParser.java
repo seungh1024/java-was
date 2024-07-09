@@ -92,7 +92,10 @@ public class HttpRequestParser extends Thread{
     public String getBody(String[] lines, int bodyIdx) {
         StringBuilder sb = new StringBuilder();
         for (; bodyIdx < lines.length; bodyIdx++) {
-            sb.append(lines[bodyIdx]).append("\n");
+            sb.append(lines[bodyIdx]);
+            if (bodyIdx != lines.length-1) {
+                sb.append("\n");
+            }
         }
 
         return sb.toString();

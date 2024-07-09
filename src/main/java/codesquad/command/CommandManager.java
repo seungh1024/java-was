@@ -86,15 +86,19 @@ public class CommandManager {
 			try {
 				var className = method.getDeclaringClass().getName();
 				var instance = findInstance(className);
+				System.out.println("instance = "+instance);
 
 				var userInputData = parsingQueryParameterResources(resources);
-				var parameters = makeParameterArgs(method,userInputData);
+				var cookie = new HashMap<String, String>();
+				var parameters = makeParameterArgs(method,userInputData,cookie);
 
+				System.out.println("parameters = "+ Arrays.toString(parameters));
 				var responseBody = method.invoke(instance, parameters);
+				System.out.println("responseBody = "+responseBody);
 
 				var returnType = method.getReturnType();
 				var headers = new HashMap<String,String>();
-				var cookie = new HashMap<String, String>();
+				System.out.println("cookie = "+cookie);
 				HttpStatus httpStatus = null;
 
 				if (instance == null) {
@@ -143,9 +147,8 @@ public class CommandManager {
 	 * @param resources
 	 * @return
 	 */
-	private Object[] makeParameterArgs(Method method, Map<String,String> resources) {
+	private Object[] makeParameterArgs(Method method, Map<String,String> resources, Map<String,String> cookie) {
 		var parameters = method.getParameters();
-		System.out.println("parameters = "+ Arrays.toString(parameters));
 
 		// 파라미터의 수가 더 작아야 한다. HttpClientResponse 객체가 넘어갈 수 있기 때문
 		if (parameters.length < resources.size()) {
@@ -163,7 +166,7 @@ public class CommandManager {
 			}
 
 			if (Objects.equals(parameterType, HttpClientResponse.class)) {
-				result[idx++] = new HttpClientResponse();
+				result[idx++] = new HttpClientResponse(cookie);
 			} else if (!Objects.isNull(resources.get(requestParamAnnotation.name()))) {
 				setParameterArgs(result, idx++, parameterType, resources.get(requestParamAnnotation.name()));
 			} else {

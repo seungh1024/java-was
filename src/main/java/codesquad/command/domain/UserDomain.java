@@ -1,11 +1,5 @@
 package codesquad.command.domain;
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.RecordComponent;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 import codesquad.command.annotation.RequestParam;
@@ -15,14 +9,17 @@ import codesquad.command.annotation.redirect.Redirect;
 import codesquad.command.domainResponse.HttpClientResponse;
 import codesquad.command.model.User;
 import codesquad.command.model.UserInfo;
-import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.HttpStatus;
+import codesquad.session.Session;
+import codesquad.session.SessionUserInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import static codesquad.util.StringSeparator.*;
 
 @Command
 public class UserDomain {
+	private static final Logger log = LoggerFactory.getLogger(UserDomain.class);
 	private static final UserDomain userDomain = new UserDomain();
 	private UserDomain(){}
 
@@ -39,9 +36,26 @@ public class UserDomain {
 		return User.getInstance().getUserInfo(userId);
 	}
 
-	@PostMapping(httpStatus = HttpStatus.OK, path = "/user/login")
+	@Redirect(redirection = "/index.html")
+	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/login")
 	public void login(@RequestParam(name = "userId") String userId, @RequestParam(name = "password") String password, HttpClientResponse response) {
-		
+		System.out.println("userId = " + userId);
+		System.out.println("password = "+password);
+
+		UserInfo userInfo = User.getInstance().getUserInfo(userId);
+		if(Objects.isNull(userInfo)) {
+			throw ClientErrorCode.USER_NOT_FOUND.exception();
+		}
+		if (!Objects.equals(userInfo.password(), password)) {
+			log.debug("[Login] Invalid username or password");
+			return;
+		}
+
+		String sessionKey = Session.getInstance().setSession(new SessionUserInfo(userInfo.userId(), userInfo.name()));
+		response.setCookie("sessionKey", sessionKey);
+		log.debug("[Login] Login successful");
+
 	}
+
 
 }
