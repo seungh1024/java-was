@@ -1,22 +1,38 @@
 package codesquad.command;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import codesquad.command.annotation.RequestParam;
 import codesquad.command.annotation.redirect.Redirect;
 import codesquad.command.domainResponse.DomainResponse;
 import codesquad.command.annotation.method.Command;
 import codesquad.command.annotation.method.GetMapping;
 import codesquad.command.annotation.method.PostMapping;
+import codesquad.command.domainResponse.HttpClientResponse;
 import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
+import codesquad.exception.server.ServerErrorCode;
 import codesquad.http.HttpStatus;
 import codesquad.http.request.format.HttpMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.crypto.MacSpi;
+
+import static codesquad.util.StringSeparator.EQUAL_SEPARATOR;
+import static codesquad.util.StringSeparator.QUERY_PARAMETER_SEPARATOR;
 
 public class CommandManager {
+	private static final Logger log = LoggerFactory.getLogger(CommandManager.class);
+
 	private static final CommandManager commandManager = new CommandManager();
 	private static Map<String, Method> getMethod = new HashMap<>();
 	private static Map<String, Method> postMethod = new HashMap<>();
@@ -66,16 +82,24 @@ public class CommandManager {
 
 
 		if (method != null) {
+			log.info("[Execute] find method success");
 			try {
-				String className = method.getDeclaringClass().getName();
-				Object instance = findInstance(className);
+				var className = method.getDeclaringClass().getName();
+				var instance = findInstance(className);
+
+				var userInputData = parsingQueryParameterResources(resources);
+				var parameters = makeParameterArgs(method,userInputData);
+
+				var responseBody = method.invoke(instance, parameters);
+
+				var returnType = method.getReturnType();
+				var headers = new HashMap<String,String>();
+				var cookie = new HashMap<String, String>();
+				HttpStatus httpStatus = null;
 
 				if (instance == null) {
 					throw new ClassNotFoundException();
 				}
-				Object responseBody = method.invoke(instance, resources);
-				Class<?> returnType = method.getReturnType();
-				HttpStatus httpStatus = null;
 				switch (httpMethod) {
 					case GET -> httpStatus = method.getAnnotation(GetMapping.class).httpStatus();
 					case POST -> httpStatus = method.getAnnotation(PostMapping.class).httpStatus();
@@ -83,7 +107,6 @@ public class CommandManager {
 				}
 
 
-				var headers = new HashMap<String,String>();
 
 				if (isRedirect(method)) {
 					Redirect annotation = method.getAnnotation(Redirect.class);
@@ -92,7 +115,7 @@ public class CommandManager {
 				}
 
 
-				return new DomainResponse(httpStatus, headers, Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
+				return new DomainResponse(httpStatus, headers, cookie, Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
 						responseBody);
 
 			} catch (InvocationTargetException exception) {
@@ -112,6 +135,96 @@ public class CommandManager {
 		// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것
 		throw ClientErrorCode.NOT_FOUND.exception();
 	}
+
+	/**
+	 * 파라미터 배열을 만들어주는 메소드. invoke() 호출 시 넘겨준다.
+	 *
+	 * @param method
+	 * @param resources
+	 * @return
+	 */
+	private Object[] makeParameterArgs(Method method, Map<String,String> resources) {
+		var parameters = method.getParameters();
+		System.out.println("parameters = "+ Arrays.toString(parameters));
+
+		// 파라미터의 수가 더 작아야 한다. HttpClientResponse 객체가 넘어갈 수 있기 때문
+		if (parameters.length < resources.size()) {
+			throw ClientErrorCode.PARAMETER_FORMAT_EXCEPTION.exception();
+		}
+
+		var result = new Object[parameters.length];
+		var idx = 0;
+		for (Parameter parameter : parameters) {
+			var parameterType = parameter.getType();
+			var requestParamAnnotation = parameter.getAnnotation(RequestParam.class);
+			if(Objects.isNull(requestParamAnnotation) && !Objects.equals(parameterType,HttpClientResponse.class)){
+				log.error("[Server Error] Domain의 파라미터와 입력 값의 파라미터 형식이 일치하지 않습니다.");
+				throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
+			}
+
+			if (Objects.equals(parameterType, HttpClientResponse.class)) {
+				result[idx++] = new HttpClientResponse();
+			} else if (!Objects.isNull(resources.get(requestParamAnnotation.name()))) {
+				setParameterArgs(result, idx++, parameterType, resources.get(requestParamAnnotation.name()));
+			} else {
+				throw ClientErrorCode.PARAMETER_FORMAT_EXCEPTION.exception();
+			}
+		}
+
+		return result;
+	}
+
+	/**
+	 * 호출할 메소드의 파라미터 타입에 맞게 저장해주는 메소드
+	 * @param args invoke()할 파라미터 배열
+	 * @param idx 현재 파라미터 배열의 인덱스
+	 * @param type 파라미터 타입
+	 * @param value 넣어줄 값
+	 */
+	private void setParameterArgs(Object[] args, int idx, Class type, String value) {
+		if (type == String.class) {
+			args[idx] = value;
+		} else if (type == int.class || type == Integer.class) {
+			args[idx] = Integer.parseInt(value);
+		} else if (type == boolean.class || type == Boolean.class) {
+			args[idx] = Boolean.parseBoolean(value);
+		} else if (type == long.class || type == Long.class) {
+			args[idx] = Long.parseLong(value);
+		} else if (type == double.class || type == Double.class) {
+			args[idx] = Double.parseDouble(value);
+		} else if (type == float.class || type == Float.class) {
+			args[idx] = Float.parseFloat(value);
+		} else if (type == short.class || type == Short.class) {
+			args[idx] = Short.parseShort(value);
+		} else if (type == byte.class || type == Byte.class) {
+			args[idx] = Byte.parseByte(value);
+		} else {
+			// 기본형이 아닌 경우 문자열 처리
+			args[idx] = value;
+		}
+	}
+
+	/**
+	 * queryParameter 형태로 들어온 값을 파싱하는 메소드
+	 * @param resources
+	 * @return
+	 */
+	private Map<String, String> parsingQueryParameterResources(String resources){
+		Map<String, String> map = new HashMap<>();
+		var userData = resources.split(QUERY_PARAMETER_SEPARATOR);
+		for (String keyValue : userData) {
+			var data = keyValue.split(EQUAL_SEPARATOR);
+			try {
+				map.put(data[0], URLDecoder.decode(data[1], "UTF-8"));
+			} catch (UnsupportedEncodingException exception) {
+				throw new RuntimeException(exception);
+			}
+		}
+
+		System.out.println("parsingQueryParameterResources: "+map);
+		return map;
+	}
+
 
 
 	private boolean isRedirect(Method method) {

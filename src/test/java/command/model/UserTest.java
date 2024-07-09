@@ -8,6 +8,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.net.CookieManager;
+import java.net.CookieStore;
+import java.net.HttpCookie;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -106,5 +110,15 @@ class UserTest {
             assertEquals(otherExceptionCount.get(), 0);
             assertEquals(successCount.get(), queueCapacity);
         }
+    }
+
+    @Test
+    void test() {
+        HttpCookie httpCookie = new HttpCookie("test", "value");
+        System.out.println(httpCookie);
+        CookieManager cookieManager = new CookieManager();
+        CookieStore cookieStore = cookieManager.getCookieStore();
+        cookieStore.add(URI.create("test"), httpCookie);
+        System.out.println(cookieStore.get(URI.create("test")));
     }
 }

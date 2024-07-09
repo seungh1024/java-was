@@ -29,4 +29,5 @@ public class User {
 	public UserInfo getUserInfo(String userId) {
 		return userData.get(userId);
 	}
+
 }

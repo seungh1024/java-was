@@ -25,6 +25,7 @@ public record HttpResponse(
         var responseHeaders = new HashMap<String, String>();
         responseHeaders.put("Content-Type", fileExtension.getContentType());
         responseHeaders.put("Content-Length", String.valueOf(body.length));
+        responseHeaders.put("Set-Cookie", "test=zzz");
 
         return new HttpResponse(httpStatus, "HTTP/1.1", responseHeaders, body);
     }
