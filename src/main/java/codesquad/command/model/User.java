@@ -30,4 +30,8 @@ public class User {
 		return userData.get(userId);
 	}
 
+	public void deleteUserInfo(String userId) {
+		userData.remove(userId);
+	}
+
 }

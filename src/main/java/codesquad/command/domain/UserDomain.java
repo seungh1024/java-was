@@ -1,11 +1,16 @@
 package codesquad.command.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import codesquad.command.annotation.RequestParam;
 import codesquad.command.annotation.method.Command;
+import codesquad.command.annotation.method.GetMapping;
 import codesquad.command.annotation.method.PostMapping;
 import codesquad.command.annotation.redirect.Redirect;
+import codesquad.command.domainResponse.HttpClientRequest;
 import codesquad.command.domainResponse.HttpClientResponse;
 import codesquad.command.model.User;
 import codesquad.command.model.UserInfo;
@@ -36,7 +41,7 @@ public class UserDomain {
 		return User.getInstance().getUserInfo(userId);
 	}
 
-	@Redirect(redirection = "/index.html")
+	@Redirect(redirection = "/main/index.html")
 	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/login")
 	public void login(@RequestParam(name = "userId") String userId, @RequestParam(name = "password") String password, HttpClientResponse response) {
 		System.out.println("userId = " + userId);
@@ -57,5 +62,13 @@ public class UserDomain {
 
 	}
 
+	@Redirect(redirection = "/index.html")
+	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/logout")
+	public void logout(HttpClientRequest request, HttpClientResponse response) {
+		var cookie = request.getCookie("sessionKey");
+		User.getInstance().deleteUserInfo(cookie.key());
+		response.setCookie("sessionKey", "");
+		response.setMaxAge(cookie.key(), 0);
+	}
 
 }

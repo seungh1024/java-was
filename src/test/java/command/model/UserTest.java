@@ -12,6 +12,9 @@ import java.net.CookieManager;
 import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -114,11 +117,11 @@ class UserTest {
 
     @Test
     void test() {
-        HttpCookie httpCookie = new HttpCookie("test", "value");
-        System.out.println(httpCookie);
-        CookieManager cookieManager = new CookieManager();
-        CookieStore cookieStore = cookieManager.getCookieStore();
-        cookieStore.add(URI.create("test"), httpCookie);
-        System.out.println(cookieStore.get(URI.create("test")));
+        List<Map> list = new ArrayList<>();
+        list.add(Map.of(1, 2));
+        list.add(Map.of(3, 4));
+
+        list.stream()
+                .forEach(System.out::println);
     }
 }

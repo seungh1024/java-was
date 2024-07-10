@@ -2,6 +2,7 @@ package codesquad.http.request.format;
 
 import java.util.Map;
 
+import codesquad.session.Cookie;
 import codesquad.util.FileExtension;
 
 public record HttpRequest(
@@ -10,6 +11,7 @@ public record HttpRequest(
 	FileExtension fileExtension,
     String httpVersion,
     Map<String, String> headers,
+	Map<String, Cookie> cookie,
     String body
 
 ) {

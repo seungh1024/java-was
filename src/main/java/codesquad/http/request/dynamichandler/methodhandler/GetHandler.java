@@ -23,9 +23,8 @@ public class GetHandler {
 			var pathAndData = httpRequest.uri().split("\\?");
 			var path = pathAndData[0];
 			var resources = pathAndData[1];
-			DomainResponse domainResponse = CommandManager.getInstance().execute(httpRequest.method(), path, resources);
+			DomainResponse domainResponse = CommandManager.getInstance().execute(httpRequest);
 			dynamicHandleResult = DynamicHandleResult.of(domainResponse);
-
 		}
 
 		return dynamicHandleResult;

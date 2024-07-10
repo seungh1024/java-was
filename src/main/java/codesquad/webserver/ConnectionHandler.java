@@ -113,6 +113,7 @@ public class ConnectionHandler {
                 } else {
                     try {
                         Exception exception = (Exception)throwable.getCause();
+                        exception.printStackTrace();
                         var errorResponse = HttpResponse.getErrorResponse(exception);
                         doResponse(clientSocket, errorResponse);
                     } catch (Exception e) {

@@ -16,12 +16,14 @@ import codesquad.command.domainResponse.DomainResponse;
 import codesquad.command.annotation.method.Command;
 import codesquad.command.annotation.method.GetMapping;
 import codesquad.command.annotation.method.PostMapping;
+import codesquad.command.domainResponse.HttpClientRequest;
 import codesquad.command.domainResponse.HttpClientResponse;
 import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.exception.server.ServerErrorCode;
 import codesquad.http.HttpStatus;
 import codesquad.http.request.format.HttpMethod;
+import codesquad.http.request.format.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +73,12 @@ public class CommandManager {
 		}
 	}
 
-	public DomainResponse execute(HttpMethod httpMethod, String path, String resources) {
+	public DomainResponse execute(HttpRequest httpRequest) {
+		log.debug("[Executing] {}", httpRequest);
+		var httpMethod = httpRequest.method();
+		var path = httpRequest.uri();
+		var resources = httpRequest.body();
+
 		Method method = null;
 		switch(httpMethod) {
 			case GET -> method = findGetMethod(path);
@@ -89,16 +96,17 @@ public class CommandManager {
 				System.out.println("instance = "+instance);
 
 				var userInputData = parsingQueryParameterResources(resources);
-				var cookie = new HashMap<String, String>();
-				var parameters = makeParameterArgs(method,userInputData,cookie);
+				HttpClientRequest httpClientRequest = new HttpClientRequest(httpRequest);
+				System.out.println(httpRequest.headers());
+				HttpClientResponse httpClientResponse = new HttpClientResponse();
+				var parameters = makeParameterArgs(method, userInputData, httpClientRequest, httpClientResponse);
 
 				System.out.println("parameters = "+ Arrays.toString(parameters));
 				var responseBody = method.invoke(instance, parameters);
 				System.out.println("responseBody = "+responseBody);
 
 				var returnType = method.getReturnType();
-				var headers = new HashMap<String,String>();
-				System.out.println("cookie = "+cookie);
+
 				HttpStatus httpStatus = null;
 
 				if (instance == null) {
@@ -115,11 +123,11 @@ public class CommandManager {
 				if (isRedirect(method)) {
 					Redirect annotation = method.getAnnotation(Redirect.class);
 					httpStatus = annotation.httpStatus();
-					headers.put("Location", annotation.redirection());
+					httpClientResponse.setHeader("Location", annotation.redirection());
 				}
 
 
-				return new DomainResponse(httpStatus, headers, cookie, Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
+				return new DomainResponse(httpStatus, httpClientResponse.getHeaders(), httpClientResponse.getCookie(),httpClientResponse.getCookieOptions(), Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
 						responseBody);
 
 			} catch (InvocationTargetException exception) {
@@ -147,7 +155,7 @@ public class CommandManager {
 	 * @param resources
 	 * @return
 	 */
-	private Object[] makeParameterArgs(Method method, Map<String,String> resources, Map<String,String> cookie) {
+	private Object[] makeParameterArgs(Method method, Map<String,String> resources, HttpClientRequest httpClientRequest, HttpClientResponse httpClientResponse) {
 		var parameters = method.getParameters();
 
 		// 파라미터의 수가 더 작아야 한다. HttpClientResponse 객체가 넘어갈 수 있기 때문
@@ -160,14 +168,16 @@ public class CommandManager {
 		for (Parameter parameter : parameters) {
 			var parameterType = parameter.getType();
 			var requestParamAnnotation = parameter.getAnnotation(RequestParam.class);
-			if(Objects.isNull(requestParamAnnotation) && !Objects.equals(parameterType,HttpClientResponse.class)){
+			if (Objects.isNull(requestParamAnnotation) && !(Objects.equals(parameterType, HttpClientResponse.class) || (Objects.equals(parameterType, HttpClientRequest.class)))) {
 				log.error("[Server Error] Domain의 파라미터와 입력 값의 파라미터 형식이 일치하지 않습니다.");
 				throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
 			}
 
 			if (Objects.equals(parameterType, HttpClientResponse.class)) {
-				result[idx++] = new HttpClientResponse(cookie);
-			} else if (!Objects.isNull(resources.get(requestParamAnnotation.name()))) {
+				result[idx++] = httpClientResponse;
+			} else if(Objects.equals(parameterType, HttpClientRequest.class)){
+				result[idx++] = httpClientRequest;
+			}else if (!Objects.isNull(resources.get(requestParamAnnotation.name()))) {
 				setParameterArgs(result, idx++, parameterType, resources.get(requestParamAnnotation.name()));
 			} else {
 				throw ClientErrorCode.PARAMETER_FORMAT_EXCEPTION.exception();
@@ -214,6 +224,11 @@ public class CommandManager {
 	 */
 	private Map<String, String> parsingQueryParameterResources(String resources){
 		Map<String, String> map = new HashMap<>();
+
+		if (resources.isEmpty()) {
+			return map;
+		}
+
 		var userData = resources.split(QUERY_PARAMETER_SEPARATOR);
 		for (String keyValue : userData) {
 			var data = keyValue.split(EQUAL_SEPARATOR);

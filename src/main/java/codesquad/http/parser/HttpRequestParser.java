@@ -4,6 +4,7 @@ import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.request.format.HttpMethod;
 import codesquad.http.request.format.HttpRequest;
 import codesquad.exception.server.ServerErrorCode;
+import codesquad.session.Cookie;
 import codesquad.util.FileExtension;
 
 import org.slf4j.Logger;
@@ -15,7 +16,7 @@ import java.util.*;
 
 import static codesquad.util.StringSeparator.*;
 
-public class HttpRequestParser extends Thread{
+public class HttpRequestParser {
     private static final Logger log = LoggerFactory.getLogger(HttpRequestParser.class);
     private static final int bufferSize = 8*1024;
     private static final int maxInputSize = 2 * 1024 * 1024; // chrome 2MB 길이로 제한
@@ -62,7 +63,7 @@ public class HttpRequestParser extends Thread{
 
 
     public HttpRequest getHttpRequest(String htmlString) {
-        var lines = htmlString.replace(CR, EMPTY_STRING).split(LF);
+        var lines = htmlString.replaceAll(CR, EMPTY_STRING).split(LF);
 
         var firstLine = lines[0].split(SPACE_SEPARATOR);
         var method = HttpMethod.fromString(firstLine[0]);
@@ -71,10 +72,11 @@ public class HttpRequestParser extends Thread{
         var httpVersion = firstLine[2];
 
         var headers = new HashMap<String,String>();
-        var bodyIdx = parsingHeader(lines, headers);
+        var cookies = new HashMap<String, Cookie>();
+        var bodyIdx = parsingHeader(lines, headers, cookies);
         var body = getBody(lines, bodyIdx);
 
-        return new HttpRequest(method, uri, fileExtension, httpVersion, headers, body);
+        return new HttpRequest(method, uri, fileExtension, httpVersion, headers, cookies, body);
     }
 
     public FileExtension getFileExtension(String uri) {
@@ -101,10 +103,10 @@ public class HttpRequestParser extends Thread{
         return sb.toString();
     }
 
-    public int parsingHeader(String[] lines, Map<String, String> headers) {
+    public int parsingHeader(String[] lines, Map<String, String> headers, Map<String, Cookie> cookies) {
         int idx = 1;
         for (; idx < lines.length; idx++) {
-            var headerLine = lines[idx];
+            var headerLine = lines[idx].replaceAll(SPACE_SEPARATOR,EMPTY_STRING);
             if (headerLine.isEmpty()) { // 비어 있다는 것은 라인 구분자가 2개라는 것으로 header 영역이 끝난다.
                 idx++;
                 break;
@@ -113,7 +115,20 @@ public class HttpRequestParser extends Thread{
             var headerName = header[0];
             var headerValue = header[1];
 
-            headers.put(headerName, headerValue);
+            if (Objects.equals(headerName, "Cookie")) {
+                var cookieList = headerValue.split(SEMICOLON_SEPARATOR);
+                for (String cookieInfo : cookieList) {
+                    var cookieKeyValue = cookieInfo.split(EQUAL_SEPARATOR);
+
+                    var key = cookieKeyValue[0];
+                    if (Objects.equals(key,"sessionKey")) {
+                        var value = cookieKeyValue[1];
+                        cookies.put(key, new Cookie(key, value));
+                    }
+                }
+            } else {
+                headers.put(headerName, headerValue);
+            }
         }
 
         return idx;
