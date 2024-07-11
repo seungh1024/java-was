@@ -122,7 +122,7 @@ public class CommandManager {
 		var resources = httpRequest.body();
 
 		Method method = null;
-		
+
 		switch(httpMethod) {
 			case GET -> method = findGetMethod(path);
 			case POST -> method = findPostMethod(path);
@@ -142,14 +142,22 @@ public class CommandManager {
 
 		// 실패하면 /index.html로 리다이렉트
 		if (!callInterceptor(path, httpRequest)) {
-			return new DomainResponse(HttpStatus.FOUND, Map.of("Location", "/index.html"), Map.of(), Map.of(), false, method.getReturnType(), null);
+			var httpClientResponse = new HttpClientResponse();
+			httpClientResponse.setHeader("Location","/login/index.html");
+			return new DomainResponse(HttpStatus.FOUND,  httpClientResponse, false, method.getReturnType(), null);
 		} else{
 			// 정적 파일 동적 처리
 			if (httpRequest.uri().contains(".html")) {
 				var cookieInfo = httpRequest.cookie();
-				var userSessionInfo = Session.getInstance().getSession(cookieInfo.get("sessionKey").value());
-				var body = UserDynamicResponseBody.getInstance().getMainHtmlBody(httpRequest.uri(), userSessionInfo);
-				return new DomainResponse(HttpStatus.OK, Map.of(), Map.of(), Map.of(), true, String.class, body);
+				Cookie cookie = cookieInfo.get("sessionKey");
+				SessionUserInfo sessionUserInfo = null;
+
+				if (Objects.nonNull(cookie)) {
+					sessionUserInfo = Session.getInstance().getSession(cookie.value());
+				}
+				var body = UserDynamicResponseBody.getInstance().getMainHtml(httpRequest.uri(), sessionUserInfo);
+				return new DomainResponse(HttpStatus.OK, new HttpClientResponse(), true, String.class, body);
+
 			}
 		}
 
@@ -193,7 +201,7 @@ public class CommandManager {
 			}
 
 
-			return new DomainResponse(httpStatus, httpClientResponse.getHeaders(), httpClientResponse.getCookie(),httpClientResponse.getCookieOptions(), Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
+			return new DomainResponse(httpStatus, httpClientResponse, Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
 					responseBody);
 
 		} catch (InvocationTargetException exception) {

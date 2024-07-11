@@ -1,5 +1,6 @@
 package codesquad.command.model;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +33,10 @@ public class User {
 
 	public void deleteUserInfo(String userId) {
 		userData.remove(userId);
+	}
+
+	public List<UserInfo> getUserList() {
+		return userData.values().stream().toList();
 	}
 
 }

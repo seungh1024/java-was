@@ -1,5 +1,6 @@
 package codesquad.command.domain.user;
 
+import java.util.List;
 import java.util.Objects;
 
 import codesquad.command.annotation.custom.RequestParam;
@@ -80,9 +81,14 @@ public class UserDomain {
 
 	}
 
-	public SessionUserInfo getSessionUserInfo(HttpClientRequest httpClientRequest) {
-		var cookieInfo = httpClientRequest.getCookie("sessionKey");
-		var cookie = cookieInfo.value();
-		return Session.getInstance().getSession(cookie);
+	@PreHandle(target = AuthHandler.class)
+	@GetMapping(httpStatus = HttpStatus.OK, path = "/user/list")
+	public String getUserList(HttpClientRequest request) {
+		var sessionKey = request.getCookie("sessionKey");
+		SessionUserInfo sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
+		var userList = User.getInstance().getUserList();
+		return UserDynamicResponseBody.getInstance().getUserListHtml("/dynamic/userList.html", sessionUserInfo, userList);
 	}
+
+
 }

@@ -7,7 +7,6 @@ import java.util.Objects;
 import codesquad.command.domainResponse.DomainResponse;
 import codesquad.http.HttpStatus;
 import codesquad.util.FileExtension;
-import codesquad.util.StringSeparator;
 
 import static codesquad.util.StringSeparator.*;
 
@@ -27,9 +26,12 @@ public record DynamicHandleResult(
 		if (!Objects.equals(domainResponse.classType(), File.class)) {
 			fileExtension = FileExtension.HTML;
 		}
+		var httpClientResponse = domainResponse.httpClientResponse();
+		var cookieOptions = httpClientResponse.getCookieOptions();
+		var cookie = httpClientResponse.getCookie();
+		var headers = httpClientResponse.getHeaders();
 
-		var cookieOptions = domainResponse.cookieOptions();
-		for (Map.Entry<String, String> entry : domainResponse.cookie().entrySet()) {
+		for (Map.Entry<String, String> entry : cookie.entrySet()) {
 			var key = entry.getKey();
 			var value =entry.getValue();
 			var cookieValue = new StringBuilder(key).append(EQUAL_SEPARATOR).append(value).append(";");
@@ -41,9 +43,9 @@ public record DynamicHandleResult(
 			}
 
 			cookieValue.append(" Path=/");
-			domainResponse.headers().put("Set-Cookie", cookieValue.toString());
+			headers.put("Set-Cookie", cookieValue.toString());
 		}
 
-		return new DynamicHandleResult(httpStatus, domainResponse.headers(), hasBody, fileExtension, body);
+		return new DynamicHandleResult(httpStatus, headers, hasBody, fileExtension, body);
 	}
 }

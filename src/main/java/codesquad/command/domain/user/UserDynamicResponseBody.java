@@ -1,11 +1,13 @@
 package codesquad.command.domain.user;
 
+import codesquad.command.model.UserInfo;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.file.FileReader;
 import codesquad.session.SessionUserInfo;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 import java.util.Objects;
 
 public class UserDynamicResponseBody {
@@ -42,7 +44,42 @@ public class UserDynamicResponseBody {
         return userDynamicResponseBody;
     }
 
-    public String getMainHtmlBody(String uri, SessionUserInfo sessionUserInfo) {
+    public String getMainHtml(String uri , SessionUserInfo sessionUserInfo) {
+        var headerHtml = getHeaderHtml(sessionUserInfo);
+        var html = getHtmlBody(uri);
+
+        return html.replace("{{dynamicButton}}", headerHtml);
+    }
+
+    public String getUserListHtml(String uri ,SessionUserInfo sessionUserInfo, List<UserInfo> userInfoList) {
+        var headerHtml = getHeaderHtml(sessionUserInfo);
+        StringBuilder sb = new StringBuilder();
+        sb.append("<table border=\"1\">").append("\n");
+        sb.append("<thead>").append("\n");
+        sb.append("<tr>").append("\n");
+        sb.append("<th>아이디</th>").append("\n");
+        sb.append("<th>이름</th>").append("\n");
+        sb.append("<th>이메일</th>").append("\n");
+        sb.append("</tr>").append("\n");
+        sb.append("</thead>").append("\n");
+        sb.append("<tbody>").append("\n");
+        for (UserInfo userInfo : userInfoList) {
+            sb.append("<tr>\n")
+                    .append("<td>").append(userInfo.userId()).append("</td>")
+                    .append("<td>").append(userInfo.name()).append("</td>")
+                    .append("<td>").append(userInfo.email()).append("</td>")
+                    .append("</tr>\n");
+        }
+        sb.append("</tbody>").append("\n");
+        sb.append("</table>").append("\n");
+
+        var html = getHtmlBody(uri);
+        html = html.replace("{{dynamicButton}}", headerHtml);
+        html = html.replace("{{userList}}", sb);
+        return html;
+    }
+
+    private String getHeaderHtml(SessionUserInfo sessionUserInfo) {
         StringBuilder dynamicBody = new StringBuilder();
 
         if (Objects.nonNull(sessionUserInfo)) {
@@ -52,6 +89,10 @@ public class UserDynamicResponseBody {
             dynamicBody.append(userDefault);
         }
 
+        return dynamicBody.toString();
+    }
+
+    private String getHtmlBody(String uri) {
         ClassLoader classLoader = getClass().getClassLoader();
         var path = "static" + uri;
 
@@ -73,8 +114,6 @@ public class UserDynamicResponseBody {
         }
 
         var html = new String(FileReader.getInstance().readFileWithByte(inputStream));
-
-        html = html.replace("{{dynamicButton}}", dynamicBody.toString());
 
         return html;
     }
