@@ -40,5 +40,13 @@ public class Session {
         return sessionKey;
     }
 
+    public SessionUserInfo getSession(String cookie) {
+        return sessionInfo.get(cookie);
+    }
+
+    public void removeSession(String cookie) {
+        sessionInfo.remove(cookie);
+    }
+
 
 }

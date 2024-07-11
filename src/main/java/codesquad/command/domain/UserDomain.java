@@ -69,7 +69,7 @@ public class UserDomain {
 	public void logout(HttpClientRequest request, HttpClientResponse response) {
 		var cookie = request.getCookie("sessionKey");
 		if (!Objects.isNull(cookie)) {
-			User.getInstance().deleteUserInfo(cookie.key());
+			Session.getInstance().removeSession(cookie.value());
 			response.setCookie("sessionKey", "");
 			response.setMaxAge(cookie.key(), 0);
 		}
