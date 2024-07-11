@@ -25,7 +25,6 @@ public class AuthHandler implements PreHandler{
         if (!Objects.isNull(cookie)) {
             var sessionUserInfo = Session.getInstance().getSession(cookie.value());
             if (Objects.isNull(sessionUserInfo)) {
-//            throw ClientErrorCode.UNAUTHORIZED_USER.exception();
                 result = false;
             }
         } else {

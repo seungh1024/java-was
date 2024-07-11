@@ -138,10 +138,10 @@ public class ConnectionHandler {
 
         try {
             var outputStream = socket.getOutputStream();
-            int offset = 0;
-            int chunkSize = 4 * 1024;
+            var offset = 0;
+            var chunkSize = 4 * 1024;
             while (offset < responseData.length) {
-                int length = Math.min(chunkSize, responseData.length - offset);
+                var length = Math.min(chunkSize, responseData.length - offset);
 
                 outputStream.write(responseData, offset, length);
                 outputStream.flush();

@@ -129,15 +129,8 @@ public class CommandManager {
 			default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
 		}
 
-		boolean isStatic = false;
-		if (path.toUpperCase().contains(".HTML")) {
-			isStatic = true;
-		}
-
-		if (Objects.isNull(method) && !isStatic) {
-			// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것
-			throw ClientErrorCode.NOT_FOUND.exception();
-		}
+		// 핸들링 가능한 메소드인지 확인
+		checkHandling(path, method);
 
 
 		// 실패하면 /index.html로 리다이렉트
@@ -148,23 +141,11 @@ public class CommandManager {
 		} else{
 			// 정적 파일 동적 처리
 			if (httpRequest.uri().contains(".html")) {
-				var cookieInfo = httpRequest.cookie();
-				Cookie cookie = cookieInfo.get("sessionKey");
-				SessionUserInfo sessionUserInfo = null;
-
-				if (Objects.nonNull(cookie)) {
-					sessionUserInfo = Session.getInstance().getSession(cookie.value());
-				}
-				var body = UserDynamicResponseBody.getInstance().getMainHtml(httpRequest.uri(), sessionUserInfo);
-				return new DomainResponse(HttpStatus.OK, new HttpClientResponse(), true, String.class, body);
+				return getStaticResponse(httpRequest);
 
 			}
 		}
-
-
 		log.info("[Execute Method] : , {}",method);
-
-
 
 		try {
 			var className = method.getDeclaringClass().getName();
@@ -192,8 +173,7 @@ public class CommandManager {
 				default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
 			}
 
-
-
+			// 리다이렉트를 하는 경우 헤더 설정
 			if (isRedirect(method)) {
 				Redirect annotation = method.getAnnotation(Redirect.class);
 				httpStatus = annotation.httpStatus();
@@ -205,11 +185,11 @@ public class CommandManager {
 					responseBody);
 
 		} catch (InvocationTargetException exception) {
+			// invoke예외가 아닌, 커스텀 예외로 감싸서 던져서 domain의 에러가 무엇인지 확인
 			Exception cause = (Exception)exception.getCause();
 			if (CustomException.class.isInstance(cause)) {
 				throw (CustomException) cause;
 			}
-
 			throw new RuntimeException(exception);
 		} catch (IllegalAccessException exception) {
 			throw new RuntimeException(exception);
@@ -217,6 +197,35 @@ public class CommandManager {
 			throw new RuntimeException(exception);
 		}
 
+	}
+
+	private void checkHandling(String path, Method method) {
+		boolean isStatic = false;
+		if (path.toUpperCase().contains(".HTML")) {
+			isStatic = true;
+		}
+
+		if (Objects.isNull(method) && !isStatic) {
+			// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것
+			throw ClientErrorCode.NOT_FOUND.exception();
+		}
+	}
+
+
+	/**
+	 *
+	 * 정적 파일인 경우 처리하는 메소드
+	 */
+	private DomainResponse getStaticResponse(HttpRequest httpRequest) {
+		var cookieInfo = httpRequest.cookie();
+		Cookie cookie = cookieInfo.get("sessionKey");
+		SessionUserInfo sessionUserInfo = null;
+
+		if (Objects.nonNull(cookie)) {
+			sessionUserInfo = Session.getInstance().getSession(cookie.value());
+		}
+		var body = UserDynamicResponseBody.getInstance().getMainHtml(httpRequest.uri(), sessionUserInfo);
+		return new DomainResponse(HttpStatus.OK, new HttpClientResponse(), true, String.class, body);
 	}
 
 	public boolean callInterceptor(String path, HttpRequest httpRequest) {
@@ -299,7 +308,7 @@ public class CommandManager {
 	}
 
 	/**
-	 * queryParameter 형태로 들어온 값을 파싱하는 메소드
+	 * queryParameter 형태로 들어온 값을 파싱하는 메소드.
 	 * @param resources
 	 * @return
 	 */

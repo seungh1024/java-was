@@ -1,4 +1,4 @@
-package command.model;
+package codesquad.command.model;
 
 import codesquad.command.model.User;
 import codesquad.command.model.UserInfo;

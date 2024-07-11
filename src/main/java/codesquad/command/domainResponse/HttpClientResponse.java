@@ -27,7 +27,6 @@ public class HttpClientResponse {
         return this.cookie;
     }
     public void setCookie(String key, String value) {
-        encrypt(value);
         this.cookie.put(key, value);
     }
 
@@ -41,16 +40,5 @@ public class HttpClientResponse {
 
     public Map<String, List<String>> getCookieOptions() {
         return this.cookieOptions;
-    }
-
-    public byte[] encrypt(String value) {
-        try{
-            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-            messageDigest.update(value.getBytes());
-            byte[] digest = messageDigest.digest();
-            return digest;
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

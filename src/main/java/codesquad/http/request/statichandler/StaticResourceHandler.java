@@ -62,18 +62,4 @@ public class StaticResourceHandler {
 
         return responseBody;
     }
-
-    public SessionUserInfo getLoginUser(HttpRequest request) {
-        SessionUserInfo result = null;
-        var cookieInfo = request.cookie();
-        var cookie = cookieInfo.get("sessionKey");
-        if (Objects.nonNull(cookie)) {
-            var userSessionInfo = Session.getInstance().getSession(cookie.value());
-            if(Objects.nonNull(userSessionInfo)) {
-                result = userSessionInfo;
-            }
-        }
-
-        return result;
-    }
 }

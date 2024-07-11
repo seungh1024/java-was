@@ -76,12 +76,6 @@ public class UserDomain {
 	}
 
 	@PreHandle(target = AuthHandler.class)
-	@GetMapping(httpStatus = HttpStatus.OK, path = "/user/logincheck")
-	public void loginCheck() {
-
-	}
-
-	@PreHandle(target = AuthHandler.class)
 	@GetMapping(httpStatus = HttpStatus.OK, path = "/user/list")
 	public String getUserList(HttpClientRequest request) {
 		var sessionKey = request.getCookie("sessionKey");
