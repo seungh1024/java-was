@@ -1,4 +1,4 @@
-package codesquad.command.annotation;
+package codesquad.command.annotation.custom;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

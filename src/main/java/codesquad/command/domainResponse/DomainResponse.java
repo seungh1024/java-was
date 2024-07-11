@@ -14,8 +14,4 @@ public record DomainResponse(
 	Class<?> classType,
 	Object returnValue
 ) {
-
-	public void setCookie(String key, String returnValue) {
-		cookie.put(key, returnValue);
-	}
 }

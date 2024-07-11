@@ -10,7 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import codesquad.command.annotation.RequestParam;
+import codesquad.command.annotation.custom.RequestParam;
+import codesquad.command.annotation.preprocess.PreHandle;
 import codesquad.command.annotation.redirect.Redirect;
 import codesquad.command.domainResponse.DomainResponse;
 import codesquad.command.annotation.method.Command;
@@ -18,16 +19,14 @@ import codesquad.command.annotation.method.GetMapping;
 import codesquad.command.annotation.method.PostMapping;
 import codesquad.command.domainResponse.HttpClientRequest;
 import codesquad.command.domainResponse.HttpClientResponse;
+import codesquad.command.interceptor.PreHandler;
 import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.exception.server.ServerErrorCode;
 import codesquad.http.HttpStatus;
-import codesquad.http.request.format.HttpMethod;
 import codesquad.http.request.format.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.crypto.MacSpi;
 
 import static codesquad.util.StringSeparator.EQUAL_SEPARATOR;
 import static codesquad.util.StringSeparator.QUERY_PARAMETER_SEPARATOR;
@@ -40,6 +39,9 @@ public class CommandManager {
 	private static Map<String, Method> postMethod = new HashMap<>();
 	private static Map<String, Object> classInfo = new HashMap<>();
 
+	// 메소드 실행 전에 실행할 메소드의 정보 저장
+	private static Map<String, Object> interceptorInfo = new HashMap<>();
+
 	private CommandManager(){}
 
 	public static CommandManager getInstance() {
@@ -49,25 +51,61 @@ public class CommandManager {
 	public void initMethod(Class<?>... classes) {
 		for (Class<?> clazz : classes) {
 			if (clazz.isAnnotationPresent(Command.class)) {
-				try {
-					Method getInstanceMethod = clazz.getDeclaredMethod("getInstance");
-					getInstanceMethod.setAccessible(true);
-					Object classInstance = getInstanceMethod.invoke(null);
-					classInfo.put(clazz.getName(), classInstance);
-					getInstanceMethod.setAccessible(false);
-				} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException exception) {
-					throw new RuntimeException(exception);
-				}
+				initClassInstance(clazz);
+				initMethodInfo(clazz);
 			}
-			if (clazz.isAnnotationPresent(Command.class)) {
-				for (Method method : clazz.getDeclaredMethods()) {
-					if (method.isAnnotationPresent(GetMapping.class)) {
-						GetMapping get = method.getAnnotation(GetMapping.class);
-						getMethod.put(get.path(), method);
-					} else if (method.isAnnotationPresent(PostMapping.class)) {
-						PostMapping post = method.getAnnotation(PostMapping.class);
-						postMethod.put(post.path(), method);
+		}
+
+		log.info("[Initializing classInfo] : {}", classInfo);
+		log.info("[Initializing getMethodInfo] : {}", getMethod);
+		log.info("[Initializing postMethodInfo] : {}", postMethod);
+		log.info("[Initializing interceptorInfo] : {}", interceptorInfo);
+	}
+
+	public void initClassInstance(Class clazz) {
+		try {
+			Method getInstanceMethod = clazz.getDeclaredMethod("getInstance");
+//			getInstanceMethod.setAccessible(true);
+			Object classInstance = getInstanceMethod.invoke(null);
+			classInfo.put(clazz.getName(), classInstance);
+//			getInstanceMethod.setAccessible(false);
+		} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException exception) {
+			throw new RuntimeException(exception);
+		}
+	}
+
+	public void initMethodInfo(Class clazz) {
+		for (Method method : clazz.getDeclaredMethods()) {
+			String path = null;
+			if (method.isAnnotationPresent(GetMapping.class)) {
+				GetMapping get = method.getAnnotation(GetMapping.class);
+				path = get.path();
+				getMethod.put(path, method);
+			} else if (method.isAnnotationPresent(PostMapping.class)) {
+				PostMapping post = method.getAnnotation(PostMapping.class);
+				path = post.path();
+				postMethod.put(path, method);
+			}
+			initInterceptors(method, path);
+		}
+	}
+
+	public void initInterceptors(Method method, String path) {
+		if (method.isAnnotationPresent(PreHandle.class)) {
+			PreHandle preHandle = method.getAnnotation(PreHandle.class);
+
+			Class<?> target = preHandle.target();
+			Class<?>[] interfaces = target.getInterfaces();
+			for(Class<?> i : interfaces) {
+				if (Objects.equals(i, PreHandler.class)) {
+					try{
+						Method getInstanceMethod = target.getDeclaredMethod("getInstance");
+						PreHandler classInstance = (PreHandler) getInstanceMethod.invoke(null);
+						interceptorInfo.put(path, classInstance);
+					} catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException exception) {
+						throw new RuntimeException(exception);
 					}
+                    break;
 				}
 			}
 		}
@@ -86,66 +124,79 @@ public class CommandManager {
 			default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
 		}
 
-
-
-		if (method != null) {
-			log.info("[Execute] find method success");
-			try {
-				var className = method.getDeclaringClass().getName();
-				var instance = findInstance(className);
-				System.out.println("instance = "+instance);
-
-				var userInputData = parsingQueryParameterResources(resources);
-				HttpClientRequest httpClientRequest = new HttpClientRequest(httpRequest);
-				System.out.println(httpRequest.headers());
-				HttpClientResponse httpClientResponse = new HttpClientResponse();
-				var parameters = makeParameterArgs(method, userInputData, httpClientRequest, httpClientResponse);
-
-				System.out.println("parameters = "+ Arrays.toString(parameters));
-				var responseBody = method.invoke(instance, parameters);
-				System.out.println("responseBody = "+responseBody);
-
-				var returnType = method.getReturnType();
-
-				HttpStatus httpStatus = null;
-
-				if (instance == null) {
-					throw new ClassNotFoundException();
-				}
-				switch (httpMethod) {
-					case GET -> httpStatus = method.getAnnotation(GetMapping.class).httpStatus();
-					case POST -> httpStatus = method.getAnnotation(PostMapping.class).httpStatus();
-					default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
-				}
-
-
-
-				if (isRedirect(method)) {
-					Redirect annotation = method.getAnnotation(Redirect.class);
-					httpStatus = annotation.httpStatus();
-					httpClientResponse.setHeader("Location", annotation.redirection());
-				}
-
-
-				return new DomainResponse(httpStatus, httpClientResponse.getHeaders(), httpClientResponse.getCookie(),httpClientResponse.getCookieOptions(), Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
-						responseBody);
-
-			} catch (InvocationTargetException exception) {
-				Exception cause = (Exception)exception.getCause();
-				if (CustomException.class.isInstance(cause)) {
-					throw (CustomException) cause;
-				}
-
-				throw new RuntimeException(exception);
-			} catch (IllegalAccessException exception) {
-				throw new RuntimeException(exception);
-			} catch (ClassNotFoundException exception) {
-				throw new RuntimeException(exception);
-			}
+		if (Objects.isNull(method)) {
+			// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것
+			throw ClientErrorCode.NOT_FOUND.exception();
 		}
 
-		// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것
-		throw ClientErrorCode.NOT_FOUND.exception();
+
+		// 실패하면 /index.html로 리다이렉트
+		if (!callInterceptor(path, httpRequest)) {
+			return new DomainResponse(HttpStatus.FOUND, Map.of("Location","/index.html"), Map.of(), Map.of(), false , method.getReturnType(),null);
+		}
+		log.info("[Execute Method] : , {}",method);
+
+		try {
+			var className = method.getDeclaringClass().getName();
+			var instance = findInstance(className);
+
+			var httpClientRequest = new HttpClientRequest(httpRequest);
+			var httpClientResponse = new HttpClientResponse();
+			var userInputData = parsingQueryParameterResources(resources);
+			var parameters = makeParameterArgs(method, userInputData, httpClientRequest, httpClientResponse);
+			log.info("[User Parameters] : {}", Arrays.toString(parameters));
+
+			var responseBody = method.invoke(instance, parameters);
+			log.debug("[{} Called Successfully] ,{}", method.getName(), path);
+
+			var returnType = method.getReturnType();
+
+			HttpStatus httpStatus = null;
+
+			if (instance == null) {
+				throw new ClassNotFoundException();
+			}
+			switch (httpMethod) {
+				case GET -> httpStatus = method.getAnnotation(GetMapping.class).httpStatus();
+				case POST -> httpStatus = method.getAnnotation(PostMapping.class).httpStatus();
+				default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
+			}
+
+
+
+			if (isRedirect(method)) {
+				Redirect annotation = method.getAnnotation(Redirect.class);
+				httpStatus = annotation.httpStatus();
+				httpClientResponse.setHeader("Location", annotation.redirection());
+			}
+
+
+			return new DomainResponse(httpStatus, httpClientResponse.getHeaders(), httpClientResponse.getCookie(),httpClientResponse.getCookieOptions(), Objects.equals(returnType, Void.TYPE) ? false : true, returnType,
+					responseBody);
+
+		} catch (InvocationTargetException exception) {
+			Exception cause = (Exception)exception.getCause();
+			if (CustomException.class.isInstance(cause)) {
+				throw (CustomException) cause;
+			}
+
+			throw new RuntimeException(exception);
+		} catch (IllegalAccessException exception) {
+			throw new RuntimeException(exception);
+		} catch (ClassNotFoundException exception) {
+			throw new RuntimeException(exception);
+		}
+
+	}
+
+	public boolean callInterceptor(String path, HttpRequest httpRequest) {
+		boolean result = true;
+		if (interceptorInfo.containsKey(path)) {
+			var instance = (PreHandler) interceptorInfo.get(path);
+			result = instance.handle(httpRequest);
+        }
+
+		return result;
 	}
 
 	/**
@@ -239,7 +290,6 @@ public class CommandManager {
 			}
 		}
 
-		System.out.println("parsingQueryParameterResources: "+map);
 		return map;
 	}
 

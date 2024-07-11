@@ -20,9 +20,9 @@ public class GetHandler {
 	public DynamicHandleResult doGet(HttpRequest httpRequest) {
 		DynamicHandleResult dynamicHandleResult = null;
 		if (httpRequest.uri().contains("?")) {
-			var pathAndData = httpRequest.uri().split("\\?");
-			var path = pathAndData[0];
-			var resources = pathAndData[1];
+			DomainResponse domainResponse = CommandManager.getInstance().execute(httpRequest);
+			dynamicHandleResult = DynamicHandleResult.of(domainResponse);
+		} else {
 			DomainResponse domainResponse = CommandManager.getInstance().execute(httpRequest);
 			dynamicHandleResult = DynamicHandleResult.of(domainResponse);
 		}
