@@ -32,4 +32,8 @@ public class FileReader {
 
         return byteArrayOutputStream.toByteArray();
     }
+
+    public byte[] readHtmlDynamically() {
+        return null;
+    }
 }

@@ -1,4 +1,4 @@
-package codesquad.command.domain;
+package codesquad.command.domain.user;
 
 import java.util.Objects;
 
@@ -11,7 +11,6 @@ import codesquad.command.annotation.redirect.Redirect;
 import codesquad.command.domainResponse.HttpClientRequest;
 import codesquad.command.domainResponse.HttpClientResponse;
 import codesquad.command.interceptor.AuthHandler;
-import codesquad.command.interceptor.PreHandler;
 import codesquad.command.model.User;
 import codesquad.command.model.UserInfo;
 import codesquad.exception.client.ClientErrorCode;
@@ -28,6 +27,7 @@ public class UserDomain {
 	private static final UserDomain userDomain = new UserDomain();
 
 	private UserDomain() {
+
 	}
 
 	public static UserDomain getInstance() {
@@ -37,6 +37,7 @@ public class UserDomain {
 	@Redirect(redirection = "/index.html")
 	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/create")
 	public UserInfo createUser(@RequestParam(name = "userId") String userId, @RequestParam(name = "password") String password, @RequestParam(name = "name") String name, @RequestParam(name = "email") String email) {
+
 		var userInfo = new UserInfo(userId, password, name, email);
 		User.getInstance().addUserInfo(userInfo);
 
@@ -46,8 +47,6 @@ public class UserDomain {
 	@Redirect(redirection = "/main/index.html")
 	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/login")
 	public void login(@RequestParam(name = "userId") String userId, @RequestParam(name = "password") String password, HttpClientResponse response) {
-		System.out.println("userId = " + userId);
-		System.out.println("password = " + password);
 
 		UserInfo userInfo = User.getInstance().getUserInfo(userId);
 		if (Objects.isNull(userInfo)) {
@@ -79,5 +78,11 @@ public class UserDomain {
 	@GetMapping(httpStatus = HttpStatus.OK, path = "/user/logincheck")
 	public void loginCheck() {
 
+	}
+
+	public SessionUserInfo getSessionUserInfo(HttpClientRequest httpClientRequest) {
+		var cookieInfo = httpClientRequest.getCookie("sessionKey");
+		var cookie = cookieInfo.value();
+		return Session.getInstance().getSession(cookie);
 	}
 }

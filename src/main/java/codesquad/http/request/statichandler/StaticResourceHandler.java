@@ -3,10 +3,14 @@ package codesquad.http.request.statichandler;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.file.FileReader;
 import codesquad.http.request.format.HttpRequest;
+import codesquad.session.Cookie;
+import codesquad.session.Session;
+import codesquad.session.SessionUserInfo;
 import codesquad.util.FileExtension;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Map;
 import java.util.Objects;
 
 public class StaticResourceHandler {
@@ -25,8 +29,10 @@ public class StaticResourceHandler {
         byte[] responseBody = null;
 
         ClassLoader classLoader = getClass().getClassLoader();
-        URL resource = classLoader.getResource("static"+request.uri());
-        InputStream inputStream = classLoader.getResourceAsStream("static"+request.uri());
+        var path = "static"+request.uri();
+        
+        URL resource = classLoader.getResource(path);
+        InputStream inputStream = classLoader.getResourceAsStream(path);
         if (inputStream == null) {
             throw ClientErrorCode.NOT_FOUND.exception();
         }
@@ -40,7 +46,6 @@ public class StaticResourceHandler {
 
         FileExtension fileExtension = FileExtension.fromString(sb.toString().toUpperCase());
         switch (fileExtension) {
-            case HTML:
             case CSS :
             case JS :
             case ICO :
@@ -56,5 +61,19 @@ public class StaticResourceHandler {
         }
 
         return responseBody;
+    }
+
+    public SessionUserInfo getLoginUser(HttpRequest request) {
+        SessionUserInfo result = null;
+        var cookieInfo = request.cookie();
+        var cookie = cookieInfo.get("sessionKey");
+        if (Objects.nonNull(cookie)) {
+            var userSessionInfo = Session.getInstance().getSession(cookie.value());
+            if(Objects.nonNull(userSessionInfo)) {
+                result = userSessionInfo;
+            }
+        }
+
+        return result;
     }
 }

@@ -19,7 +19,6 @@ public class Session {
         return session;
     }
     public String setSession(SessionUserInfo sessionUserInfo) {
-        System.out.println("session");
         String sessionKey = UUID.randomUUID().toString();
         int range = 5;
         boolean isSuccess = false;

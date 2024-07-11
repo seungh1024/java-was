@@ -48,7 +48,6 @@ public class HttpClientResponse {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
             messageDigest.update(value.getBytes());
             byte[] digest = messageDigest.digest();
-            System.out.println("digest = "+ Arrays.toString(digest));
             return digest;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);

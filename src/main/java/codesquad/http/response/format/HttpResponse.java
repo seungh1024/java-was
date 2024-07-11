@@ -70,6 +70,7 @@ public record HttpResponse(
     }
 
     public static HttpResponse getHtmlResponse(DynamicHandleResult dynamicHandleResult) {
+
         var responseHeaders = new HashMap<String, String>();
         responseHeaders.put("Content-Type", dynamicHandleResult.fileExtension().getContentType() + "; charset=UTF-8");
         for (Map.Entry<String, String> entry : dynamicHandleResult.headers().entrySet()) {

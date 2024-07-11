@@ -1,7 +1,7 @@
 package codesquad;
 
 import codesquad.command.CommandManager;
-import codesquad.command.domain.UserDomain;
+import codesquad.command.domain.user.UserDomain;
 import codesquad.webserver.ConnectionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

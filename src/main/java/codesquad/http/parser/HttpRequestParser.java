@@ -87,7 +87,6 @@ public class HttpRequestParser {
         int lastIndex = uri.lastIndexOf(".");
         var extension = uri.substring(lastIndex+1, uri.length()).toUpperCase();
 
-
         return FileExtension.fromString(extension);
     }
 

@@ -13,6 +13,7 @@ import java.util.Objects;
 import codesquad.command.annotation.custom.RequestParam;
 import codesquad.command.annotation.preprocess.PreHandle;
 import codesquad.command.annotation.redirect.Redirect;
+import codesquad.command.domain.user.UserDynamicResponseBody;
 import codesquad.command.domainResponse.DomainResponse;
 import codesquad.command.annotation.method.Command;
 import codesquad.command.annotation.method.GetMapping;
@@ -25,6 +26,9 @@ import codesquad.exception.client.ClientErrorCode;
 import codesquad.exception.server.ServerErrorCode;
 import codesquad.http.HttpStatus;
 import codesquad.http.request.format.HttpRequest;
+import codesquad.session.Cookie;
+import codesquad.session.Session;
+import codesquad.session.SessionUserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,13 +122,19 @@ public class CommandManager {
 		var resources = httpRequest.body();
 
 		Method method = null;
+		
 		switch(httpMethod) {
 			case GET -> method = findGetMethod(path);
 			case POST -> method = findPostMethod(path);
 			default -> throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();
 		}
 
-		if (Objects.isNull(method)) {
+		boolean isStatic = false;
+		if (path.toUpperCase().contains(".HTML")) {
+			isStatic = true;
+		}
+
+		if (Objects.isNull(method) && !isStatic) {
 			// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것
 			throw ClientErrorCode.NOT_FOUND.exception();
 		}
@@ -132,9 +142,21 @@ public class CommandManager {
 
 		// 실패하면 /index.html로 리다이렉트
 		if (!callInterceptor(path, httpRequest)) {
-			return new DomainResponse(HttpStatus.FOUND, Map.of("Location","/index.html"), Map.of(), Map.of(), false , method.getReturnType(),null);
+			return new DomainResponse(HttpStatus.FOUND, Map.of("Location", "/index.html"), Map.of(), Map.of(), false, method.getReturnType(), null);
+		} else{
+			// 정적 파일 동적 처리
+			if (httpRequest.uri().contains(".html")) {
+				var cookieInfo = httpRequest.cookie();
+				var userSessionInfo = Session.getInstance().getSession(cookieInfo.get("sessionKey").value());
+				var body = UserDynamicResponseBody.getInstance().getMainHtmlBody(httpRequest.uri(), userSessionInfo);
+				return new DomainResponse(HttpStatus.OK, Map.of(), Map.of(), Map.of(), true, String.class, body);
+			}
 		}
+
+
 		log.info("[Execute Method] : , {}",method);
+
+
 
 		try {
 			var className = method.getDeclaringClass().getName();

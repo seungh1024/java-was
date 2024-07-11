@@ -8,13 +8,19 @@ import java.util.Map;
 public class HttpClientRequest {
     Map<String,String> headers;
     Map<String, Cookie> cookies;
+    String uri;
 
     public HttpClientRequest(HttpRequest httpRequest) {
         this.headers = httpRequest.headers();
         this.cookies = httpRequest.cookie();
+        this.uri = httpRequest.uri();
     }
 
     public Cookie getCookie(String cookieName) {
         return cookies.get(cookieName);
+    }
+
+    public String getUri() {
+        return this.uri;
     }
 }
