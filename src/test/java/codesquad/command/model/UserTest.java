@@ -3,10 +3,7 @@ package codesquad.command.model;
 import codesquad.command.model.User;
 import codesquad.command.model.UserInfo;
 import codesquad.exception.CustomException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.net.CookieManager;
 import java.net.CookieStore;
@@ -34,6 +31,11 @@ class UserTest {
     int maxPoolSize = 50;
     int keepAliveTime = 10;
     int queueCapacity = 10;
+
+    @BeforeEach
+    void setUp(){
+        User.getInstance().deleteUserInfo(userId);
+    }
 
     @Nested
     @DisplayName("유저 클래스 동시성 테스트")
@@ -113,15 +115,5 @@ class UserTest {
             assertEquals(otherExceptionCount.get(), 0);
             assertEquals(successCount.get(), queueCapacity);
         }
-    }
-
-    @Test
-    void test() {
-        List<Map> list = new ArrayList<>();
-        list.add(Map.of(1, 2));
-        list.add(Map.of(3, 4));
-
-        list.stream()
-                .forEach(System.out::println);
     }
 }
