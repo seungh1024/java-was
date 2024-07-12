@@ -1,16 +1,11 @@
-package codesquad.http.request.dynamichandler.methodhandler;
+package codesquad.command.interceptor;
 
-import codesquad.command.CommandManager;
-import codesquad.command.domain.user.UserDomain;
-import codesquad.http.HttpStatus;
-import codesquad.http.request.dynamichandler.DynamicHandleResult;
 import codesquad.http.request.format.HttpMethod;
 import codesquad.http.request.format.HttpRequest;
 import codesquad.session.Cookie;
 import codesquad.session.Session;
 import codesquad.session.SessionUserInfo;
 import codesquad.util.FileExtension;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,33 +14,39 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class GetHandlerTest {
+class AuthHandlerTest {
 
-    @BeforeAll
-    static void setUp() {
-        CommandManager.getInstance().initMethod(UserDomain.class);
-    }
     @Nested
-    @DisplayName("Get 메소드 핸들링 테스트")
-    class HandlerTest {
+    @DisplayName("사용자 인증 테스트")
+    class AuthTest {
+
         @Test
-        @DisplayName("동적 get 메소드 핸들링 테스트")
-        void request_with_query_parameter(){
+        @DisplayName("로그인한 사용자라면 true를 리턴한다")
+        void request_with_login_user(){
             // given
             SessionUserInfo sessionUserInfo = new SessionUserInfo("testId", "testName");
             String sessionKey = Session.getInstance().setSession(sessionUserInfo);
             Cookie cookie = new Cookie("sessionKey", sessionKey);
             HttpRequest httpRequest = new HttpRequest(HttpMethod.GET, "/user/list", FileExtension.DYNAMIC, "HTTP/1.1", Map.of(), Map.of("sessionKey",cookie), "");
 
-
             // when
-            DynamicHandleResult dynamicHandleResult = GetHandler.getInstance().doGet(httpRequest);
+            boolean result = AuthHandler.getInstance().handle(httpRequest);
 
             // then
-            assertEquals(HttpStatus.OK, dynamicHandleResult.httpStatus());
-            assertTrue(dynamicHandleResult.hasBody());
-            assertEquals(FileExtension.HTML,dynamicHandleResult.fileExtension());
+            assertEquals(true, result);
         }
-    }
 
+        @Test
+        @DisplayName("로그인을 하지 않은 사용자라면 false를 리턴한다")
+        void request_with_non_login_user(){
+            HttpRequest httpRequest = new HttpRequest(HttpMethod.GET, "/user/list", FileExtension.DYNAMIC, "HTTP/1.1", Map.of(), Map.of(), "");
+
+            // when
+            boolean result = AuthHandler.getInstance().handle(httpRequest);
+
+            // then
+            assertEquals(false, result);
+        }
+
+    }
 }

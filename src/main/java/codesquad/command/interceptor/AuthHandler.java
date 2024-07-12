@@ -1,13 +1,8 @@
 package codesquad.command.interceptor;
 
-import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.request.format.HttpRequest;
 import codesquad.session.Cookie;
 import codesquad.session.Session;
-import codesquad.session.SessionUserInfo;
-
-import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Objects;
 
 public class AuthHandler implements PreHandler{

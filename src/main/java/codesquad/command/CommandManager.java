@@ -120,7 +120,6 @@ public class CommandManager {
 		var httpMethod = httpRequest.method();
 		var path = httpRequest.uri();
 		var resources = httpRequest.body();
-
 		Method method = null;
 
 		switch(httpMethod) {
@@ -204,6 +203,8 @@ public class CommandManager {
 		if (path.toUpperCase().contains(".HTML")) {
 			isStatic = true;
 		}
+
+		log.debug("[Method Info] : , {} ", method);
 
 		if (Objects.isNull(method) && !isStatic) {
 			// 핸들링할 수 있는 메소드가 없으니 요청 경로가 잘못된 것

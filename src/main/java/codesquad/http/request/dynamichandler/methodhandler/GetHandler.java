@@ -19,6 +19,7 @@ public class GetHandler {
 
 	public DynamicHandleResult doGet(HttpRequest httpRequest) {
 		DynamicHandleResult dynamicHandleResult = null;
+
 		if (httpRequest.uri().contains("?")) {
 			DomainResponse domainResponse = CommandManager.getInstance().execute(httpRequest);
 			dynamicHandleResult = DynamicHandleResult.of(domainResponse);
