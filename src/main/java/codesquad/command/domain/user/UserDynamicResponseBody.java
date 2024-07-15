@@ -25,7 +25,7 @@ public class UserDynamicResponseBody {
             "</li>";
 
     private static final String userDynamic = "<li class=\"header__menu__item\">\n" +
-            "            <a class=\"btn btn_contained btn_size_s\" href=\"/article\">글쓰기</a>\n" +
+            "            <a class=\"btn btn_contained btn_size_s\" href=\"/article/index.html\">글쓰기</a>\n" +
             "          </li>\n" +
             "          <li class=\"header__menu__item\">\n" +
             "            <form action=\"/user/logout\" method=\"POST\" class=\"form\" enctype=\"application/x-www-form-urlencoded\">\n" +
