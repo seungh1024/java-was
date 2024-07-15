@@ -1,24 +1,18 @@
 package codesquad.http.request.statichandler;
 
 import codesquad.exception.client.ClientErrorCode;
-import codesquad.file.FileReader;
+import codesquad.file.CustomFileReader;
 import codesquad.http.request.format.HttpRequest;
-import codesquad.session.Cookie;
-import codesquad.session.Session;
-import codesquad.session.SessionUserInfo;
 import codesquad.util.FileExtension;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Map;
 import java.util.Objects;
 
 public class StaticResourceHandler {
     private static final StaticResourceHandler requestHandler = new StaticResourceHandler();
-    private final String rootPath;
 
     private StaticResourceHandler() {
-        rootPath = System.getProperty("user.dir");
     }
 
     public static StaticResourceHandler getInstance() {
@@ -52,7 +46,7 @@ public class StaticResourceHandler {
             case PNG :
             case JPG:
             case SVG:
-                responseBody = FileReader.getInstance().readFileWithByte(inputStream);
+                responseBody = CustomFileReader.getInstance().readFileWithByte(inputStream);
 
         }
 

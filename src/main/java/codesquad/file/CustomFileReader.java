@@ -4,14 +4,14 @@ import java.io.*;
 
 import codesquad.exception.server.ServerErrorCode;
 
-public class FileReader {
-    private static final FileReader fileHandler = new FileReader();
+public class CustomFileReader {
+    private static final CustomFileReader fileHandler = new CustomFileReader();
     private static final int BUFFER_SIZE = 4*1024;
-    private FileReader() {
+    private CustomFileReader() {
 
     }
 
-    public static FileReader getInstance() {
+    public static CustomFileReader getInstance() {
         return fileHandler;
     }
 

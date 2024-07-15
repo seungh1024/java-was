@@ -13,7 +13,7 @@ import java.util.Objects;
 import codesquad.command.annotation.custom.RequestParam;
 import codesquad.command.annotation.preprocess.PreHandle;
 import codesquad.command.annotation.redirect.Redirect;
-import codesquad.command.domain.user.UserDynamicResponseBody;
+import codesquad.command.domain.DynamicResponseBody;
 import codesquad.command.domainResponse.DomainResponse;
 import codesquad.command.annotation.method.Command;
 import codesquad.command.annotation.method.GetMapping;
@@ -139,7 +139,7 @@ public class CommandManager {
 			return new DomainResponse(HttpStatus.FOUND,  httpClientResponse, false, method.getReturnType(), null);
 		} else{
 			// 정적 파일 동적 처리
-			if (httpRequest.uri().contains(".html")) {
+			if (httpRequest.uri().contains("index.html")) {
 				return getStaticResponse(httpRequest);
 
 			}
@@ -225,7 +225,7 @@ public class CommandManager {
 		if (Objects.nonNull(cookie)) {
 			sessionUserInfo = Session.getInstance().getSession(cookie.value());
 		}
-		var body = UserDynamicResponseBody.getInstance().getMainHtml(httpRequest.uri(), sessionUserInfo);
+		var body = DynamicResponseBody.getInstance().getMainHtml(httpRequest.uri(), sessionUserInfo);
 		return new DomainResponse(HttpStatus.OK, new HttpClientResponse(), true, String.class, body);
 	}
 

@@ -1,8 +1,8 @@
-package codesquad.command.domain.user;
+package codesquad.command.domain;
 
 import codesquad.command.model.UserInfo;
 import codesquad.exception.client.ClientErrorCode;
-import codesquad.file.FileReader;
+import codesquad.file.CustomFileReader;
 import codesquad.session.SessionUserInfo;
 
 import java.io.InputStream;
@@ -10,11 +10,9 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 
-public class UserDynamicResponseBody {
-    private static final UserDynamicResponseBody userDynamicResponseBody = new UserDynamicResponseBody();
-    private final String rootPath;
+public class DynamicResponseBody {
+    private static final DynamicResponseBody responseBody = new DynamicResponseBody();
 
-    private static final int BUFFER_SIZE = 4*1024;
     private static final String userDefault = "<li class=\"header__menu__item\">\n" +
             "<a class=\"btn btn_contained btn_size_s\" href=\"/login/index.html\">로그인</a>\n" +
             "</li>\n" +
@@ -25,7 +23,7 @@ public class UserDynamicResponseBody {
             "</li>";
 
     private static final String userDynamic = "<li class=\"header__menu__item\">\n" +
-            "            <a class=\"btn btn_contained btn_size_s\" href=\"/article/index.html\">글쓰기</a>\n" +
+            "            <a class=\"btn btn_contained btn_size_s\" href=\"/article\">글쓰기</a>\n" +
             "          </li>\n" +
             "          <li class=\"header__menu__item\">\n" +
             "            <form action=\"/user/logout\" method=\"POST\" class=\"form\" enctype=\"application/x-www-form-urlencoded\">\n" +
@@ -36,12 +34,11 @@ public class UserDynamicResponseBody {
             "            </form>\n" +
             "          </li>";
 
-    private UserDynamicResponseBody() {
-        rootPath = System.getProperty("user.dir");
+    private DynamicResponseBody() {
     }
 
-    public static UserDynamicResponseBody getInstance() {
-        return userDynamicResponseBody;
+    public static DynamicResponseBody getInstance() {
+        return responseBody;
     }
 
     public String getMainHtml(String uri , SessionUserInfo sessionUserInfo) {
@@ -113,8 +110,16 @@ public class UserDynamicResponseBody {
             throw ClientErrorCode.NOT_FOUND.exception();
         }
 
-        var html = new String(FileReader.getInstance().readFileWithByte(inputStream));
+        var html = new String(CustomFileReader.getInstance().readFileWithByte(inputStream));
 
         return html;
+    }
+
+    public String getHtmlFile(String path, SessionUserInfo sessionUserInfo){
+        var totalPath = "static"+path;
+        var inputStream = this.getClass().getClassLoader().getResourceAsStream(totalPath);
+        var html = new String(CustomFileReader.getInstance().readFileWithByte(inputStream));
+        var headerHtml = getHeaderHtml(sessionUserInfo);
+        return html.replace("{{dynamicButton}}", headerHtml);
     }
 }

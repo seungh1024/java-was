@@ -1,6 +1,7 @@
 package codesquad;
 
 import codesquad.command.CommandManager;
+import codesquad.command.domain.board.BoardDomain;
 import codesquad.command.domain.user.UserDomain;
 import codesquad.webserver.ConnectionHandler;
 import org.slf4j.Logger;
@@ -32,6 +33,6 @@ public class Main {
 
     public static void initCommand() {
         var commandManager = CommandManager.getInstance();
-        commandManager.initMethod(UserDomain.class);
+        commandManager.initMethod(UserDomain.class, BoardDomain.class);
     }
 }
