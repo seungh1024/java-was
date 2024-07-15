@@ -1,6 +1,6 @@
 package codesquad.command.domain;
 
-import codesquad.command.model.UserInfo;
+import codesquad.db.user.Member;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.file.CustomFileReader;
 import codesquad.session.SessionUserInfo;
@@ -48,7 +48,7 @@ public class DynamicResponseBody {
         return html.replace("{{dynamicButton}}", headerHtml);
     }
 
-    public String getUserListHtml(String uri ,SessionUserInfo sessionUserInfo, List<UserInfo> userInfoList) {
+    public String getUserListHtml(String uri ,SessionUserInfo sessionUserInfo, List<Member> userInfoList) {
         var headerHtml = getHeaderHtml(sessionUserInfo);
         StringBuilder sb = new StringBuilder();
         sb.append("<table border=\"1\">").append("\n");
@@ -60,7 +60,7 @@ public class DynamicResponseBody {
         sb.append("</tr>").append("\n");
         sb.append("</thead>").append("\n");
         sb.append("<tbody>").append("\n");
-        for (UserInfo userInfo : userInfoList) {
+        for (Member userInfo : userInfoList) {
             sb.append("<tr>\n")
                     .append("<td>").append(userInfo.userId()).append("</td>")
                     .append("<td>").append(userInfo.name()).append("</td>")

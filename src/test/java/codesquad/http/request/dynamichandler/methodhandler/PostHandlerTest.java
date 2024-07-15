@@ -2,14 +2,11 @@ package codesquad.http.request.dynamichandler.methodhandler;
 
 import codesquad.command.CommandManager;
 import codesquad.command.domain.user.UserDomain;
-import codesquad.command.model.UserInfo;
+import codesquad.db.user.Member;
 import codesquad.http.HttpStatus;
 import codesquad.http.request.dynamichandler.DynamicHandleResult;
 import codesquad.http.request.format.HttpMethod;
 import codesquad.http.request.format.HttpRequest;
-import codesquad.session.Cookie;
-import codesquad.session.Session;
-import codesquad.session.SessionUserInfo;
 import codesquad.util.FileExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -43,7 +40,7 @@ class PostHandlerTest {
             assertEquals(HttpStatus.FOUND, dynamicHandleResult.httpStatus());
             assertTrue(dynamicHandleResult.hasBody());
             assertEquals(FileExtension.HTML, dynamicHandleResult.fileExtension());
-            assertEquals(new UserInfo("test","test","test","test@test"),dynamicHandleResult.body());
+            assertEquals(new Member("test","test","test","test@test"),dynamicHandleResult.body());
         }
     }
 }

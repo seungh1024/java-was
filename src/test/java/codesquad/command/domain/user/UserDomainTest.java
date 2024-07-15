@@ -2,7 +2,6 @@ package codesquad.command.domain.user;
 
 import java.util.Map;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -10,8 +9,8 @@ import org.junit.jupiter.api.Test;
 
 import codesquad.command.domainResponse.HttpClientRequest;
 import codesquad.command.domainResponse.HttpClientResponse;
-import codesquad.command.model.User;
-import codesquad.command.model.UserInfo;
+import codesquad.db.user.MemberRepository;
+import codesquad.db.user.Member;
 import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.request.format.HttpMethod;
@@ -33,7 +32,7 @@ class UserDomainTest {
 
 	@BeforeEach
 	void init() {
-		User.getInstance().deleteUserInfo(userId);
+		MemberRepository.getInstance().deleteUserInfo(userId);
 		Session.getInstance().removeSession("value");
 	}
 
@@ -49,15 +48,15 @@ class UserDomainTest {
 			var user = UserDomain.getInstance().createUser(userId, password, userName, userEmail);
 
 			// then
-			assertEquals(new UserInfo(userId, password, userName, userEmail), user);
+			assertEquals(new Member(userId, password, userName, userEmail), user);
 		}
 
 		@Test
 		@DisplayName("중복된 아이디의 사용자가 있으면 사용자 생성에 실패한다")
 		void request_with_same_user_id() {
 			// given
-			var userInfo = new UserInfo(userId, password, userName, userEmail);
-			User.getInstance().addUserInfo(userInfo);
+			var userInfo = new Member(userId, password, userName, userEmail);
+			MemberRepository.getInstance().addUserInfo(userInfo);
 
 			// when
 			var customException = assertThrows(CustomException.class, () -> {
@@ -80,8 +79,8 @@ class UserDomainTest {
 		@DisplayName("사용자 정보가 존재하면 로그인에 성공한다.")
 		void request_with_correct_user_info() {
 			// given
-			var userInfo = new UserInfo(userId, password, userName, userEmail);
-			User.getInstance().addUserInfo(userInfo);
+			var userInfo = new Member(userId, password, userName, userEmail);
+			MemberRepository.getInstance().addUserInfo(userInfo);
 			var httpClientResponse = new HttpClientResponse();
 
 			// when

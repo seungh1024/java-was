@@ -12,8 +12,8 @@ import codesquad.command.domain.DynamicResponseBody;
 import codesquad.command.domainResponse.HttpClientRequest;
 import codesquad.command.domainResponse.HttpClientResponse;
 import codesquad.command.interceptor.AuthHandler;
-import codesquad.command.model.User;
-import codesquad.command.model.UserInfo;
+import codesquad.db.user.MemberRepository;
+import codesquad.db.user.Member;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.HttpStatus;
 import codesquad.session.Session;
@@ -37,30 +37,31 @@ public class UserDomain {
 
 	@Redirect(redirection = "/index.html")
 	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/create")
-	public UserInfo createUser(@RequestParam(name = "userId") String userId, @RequestParam(name = "password") String password, @RequestParam(name = "name") String name, @RequestParam(name = "email") String email) {
+	public Member createUser(@RequestParam(name = "userId") String userId, @RequestParam(name = "password") String password, @RequestParam(name = "name") String name, @RequestParam(name = "email") String email) {
 
-		var userInfo = new UserInfo(userId, password, name, email);
-		User.getInstance().addUserInfo(userInfo);
+		var userInfo = new Member(userId, password, name, email);
+		// MemberRepository.getInstance().addUserInfo(userInfo);
 
-		return User.getInstance().getUserInfo(userId);
+		// return MemberRepository.getInstance().getUserInfo(userId);
+		return null;
 	}
 
 	@Redirect(redirection = "/main/index.html")
 	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/login")
 	public void login(@RequestParam(name = "userId") String userId, @RequestParam(name = "password") String password, HttpClientResponse response) {
 
-		UserInfo userInfo = User.getInstance().getUserInfo(userId);
-		if (Objects.isNull(userInfo)) {
-			throw ClientErrorCode.USER_NOT_FOUND.exception();
-		}
-		if (!Objects.equals(userInfo.password(), password)) {
-			log.debug("[Login] Invalid username or password");
-			return;
-		}
-
-		String sessionKey = Session.getInstance().setSession(new SessionUserInfo(userInfo.userId(), userInfo.name()));
-		response.setCookie("sessionKey", sessionKey);
-		log.debug("[Login] Login successful");
+		// Member userInfo = MemberRepository.getInstance().getUserInfo(userId);
+		// if (Objects.isNull(userInfo)) {
+		// 	throw ClientErrorCode.USER_NOT_FOUND.exception();
+		// }
+		// if (!Objects.equals(userInfo.password(), password)) {
+		// 	log.debug("[Login] Invalid username or password");
+		// 	return;
+		// }
+		//
+		// String sessionKey = Session.getInstance().setSession(new SessionUserInfo(userInfo.userId(), userInfo.name()));
+		// response.setCookie("sessionKey", sessionKey);
+		// log.debug("[Login] Login successful");
 
 	}
 
@@ -80,8 +81,10 @@ public class UserDomain {
 	public String getUserList(HttpClientRequest request) {
 		var sessionKey = request.getCookie("sessionKey");
 		var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
-		var userList = User.getInstance().getUserList();
-		return DynamicResponseBody.getInstance().getUserListHtml("/dynamic/userList.html", sessionUserInfo, userList);
+		// var userList = MemberRepository.getInstance().getUserList();
+		// return DynamicResponseBody.getInstance().getUserListHtml("/dynamic/userList.html", sessionUserInfo, userList);
+
+		return null;
 	}
 
 
