@@ -83,6 +83,12 @@ public class HttpRequestParser {
         var bodyIdx = parsingHeader(lines, headers, cookies);
         var body = getBody(lines, bodyIdx);
 
+        if (uri.contains("?")) {
+            var uriSplit = uri.split("\\?");
+            uri = uriSplit[0];
+            body = uriSplit[1];
+        }
+
         return new HttpRequest(method, uri, fileExtension, httpVersion, headers, cookies, body);
     }
 

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="../reset.css" rel="stylesheet" />
+    <link href="../global.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .post-title {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .post-author {
+            font-size: 0.9em;
+            color: #777;
+            margin-bottom: 20px;
+        }
+        .post-content {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #555;
+        }
+        .post-content p {
+            margin-bottom: 15px;
+        }
+    </style>
+
+</head>
+<body>
+<div class="container">
+    <header class="header">
+        <a href="/main"><img src="../img/signiture.svg" /></a>
+        <ul class="header__menu">
+            {{dynamicButton}}
+        </ul>
+    </header>
+    <div class="page">
+        <h1 class="post-title">{{postTitle}}</h1>
+        <div class="post-author">작성자: {{memberName}}</div>
+        <div class="post-content">
+            {{postContent}}
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -55,6 +55,45 @@ public class MemberRepository {
 
 	}
 
+	public Member findByPk(long pk) {
+		log.info("[Member FindById], userId = {}",pk);
+		var sql = """
+			select * from member
+			where id = ?
+			""";
+
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = getConnection();
+			ps = con.prepareStatement(sql);
+			ps.setLong(1, pk);
+
+			rs = ps.executeQuery();
+			if (rs.next()) {
+				Member member = new Member();
+				member.setId(rs.getLong("id"));
+				member.setMemberId(rs.getString("member_id"));
+				member.setPassword(rs.getString("member_password"));
+				member.setName(rs.getString("member_name"));
+				member.setEmail(rs.getString("member_email"));
+
+				return member;
+			} else {
+				log.info("[MemberRepository] 사용자 정보가 없습니다.");
+				return null;
+			}
+
+		} catch (SQLException exception) {
+			log.error("[SQLException] throw error when findById, Class info = {}", MemberRepository.class);
+			throw new RuntimeException(exception);
+		}finally {
+			close(con,ps,rs);
+		}
+	}
+
 	public Member findById(String userId) {
 		log.info("[Member FindById], userId = {}",userId);
 		var sql = """

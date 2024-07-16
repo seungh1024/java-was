@@ -35,6 +35,7 @@ public class MainDomain {
     public String getLoginMainPage(HttpClientRequest request) {
         log.info("[GET] /main 호출");
         var sessionKey = request.getCookie("sessionKey");
+
         SessionUserInfo sessionUserInfo = null;
         if (!Objects.isNull(sessionKey)) {
             sessionUserInfo = Session.getInstance().getSession(sessionKey.value());

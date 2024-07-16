@@ -53,7 +53,7 @@ public class MemberDomain {
 		 }
 		 if (!Objects.equals(member.getPassword(), password)) {
 		 	log.debug("[Login] Invalid username or password");
-		 	return;
+		 	throw  ClientErrorCode.INVALID_PASSWORD.exception();
 		 }
 
 		 String sessionKey = Session.getInstance().setSession(new SessionUserInfo(member.getId(),member.getMemberId(), member.getName()));

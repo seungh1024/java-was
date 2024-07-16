@@ -208,22 +208,6 @@ public class CommandManager {
 	}
 
 
-	/**
-	 *
-	 * 정적 파일인 경우 처리하는 메소드
-	 */
-	private DomainResponse getStaticResponse(HttpRequest httpRequest) {
-		var cookieInfo = httpRequest.cookie();
-		Cookie cookie = cookieInfo.get("sessionKey");
-		SessionUserInfo sessionUserInfo = null;
-
-		if (Objects.nonNull(cookie)) {
-			sessionUserInfo = Session.getInstance().getSession(cookie.value());
-		}
-		var body = DynamicResponseBody.getInstance().getMainHtml(httpRequest.uri(), sessionUserInfo);
-		return new DomainResponse(HttpStatus.OK, new HttpClientResponse(), true, String.class, body);
-	}
-
 	public boolean callInterceptor(String path, HttpRequest httpRequest) {
 		boolean result = true;
 		if (interceptorInfo.containsKey(path)) {

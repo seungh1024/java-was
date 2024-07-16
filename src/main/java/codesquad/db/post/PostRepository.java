@@ -7,6 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class PostRepository {
     private final Logger log = LoggerFactory.getLogger(PostRepository.class);
@@ -109,6 +112,78 @@ public class PostRepository {
         }finally {
             close(con,ps, null);
         }
+    }
+
+    /**
+     * 게시글과 사용자 정보 Join하여 가져옴
+     * @return
+     */
+    public List<PostAndMember> getPostList() {
+        log.info("[Post List] getPostList");
+
+        var postSql = """
+                select * from post
+                """;
+
+        var userSql = """
+                select id,member_name from member
+                where id = ?
+                """;
+
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            con = getConnection();
+            ps = con.prepareStatement(postSql);
+            rs = ps.executeQuery();
+
+            var postAndMember = new ArrayList<PostAndMember>();
+            var postList = new ArrayList<Post>();
+
+            if (rs.next()) {
+                do {
+                    Post post = new Post();
+                    post.setId(rs.getLong(1));
+                    post.setTitle(rs.getString(2));
+                    post.setContent(rs.getString(3));
+                    post.setUserId(rs.getLong(4));
+                    postList.add(post);
+                } while (rs.next());
+            }
+
+            for (Post post : postList) {
+                ps = con.prepareStatement(userSql);
+                ps.setLong(1,post.getUserId());
+                System.out.println(post);
+                rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    do {
+                        var memberPk = rs.getLong(1);
+                        var memberName = rs.getString(2);
+                        var pam = new PostAndMember(post.getId(), post.getTitle(), post.getContent(), memberPk, memberName);
+                        postAndMember.add(pam);
+                    } while (rs.next());
+                }
+            }
+
+            System.out.println(postAndMember);
+
+            if (postAndMember.size() == 0) {
+                postAndMember = null;
+            }
+
+            return postAndMember;
+
+        } catch (SQLException exception) {
+            log.error("[SQLException] throw error when delete post, Class info = {}", MemberRepository.class);
+            throw new RuntimeException(exception);
+        }finally {
+            close(con,ps, null);
+        }
+
     }
 
     private void close(Connection connection, Statement stmt, ResultSet rs) {

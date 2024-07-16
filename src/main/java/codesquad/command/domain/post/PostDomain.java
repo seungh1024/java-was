@@ -10,6 +10,8 @@ import codesquad.command.domainResponse.HttpClientRequest;
 import codesquad.command.interceptor.AuthHandler;
 import codesquad.db.post.Post;
 import codesquad.db.post.PostRepository;
+import codesquad.db.user.Member;
+import codesquad.db.user.MemberRepository;
 import codesquad.http.HttpStatus;
 import codesquad.session.Session;
 import org.slf4j.Logger;
@@ -23,7 +25,7 @@ public class PostDomain {
     private PostDomain() {
     }
 
-    public static PostDomain getInstance(){
+    public static PostDomain getInstance() {
         return boardDomain;
     }
 
@@ -33,7 +35,7 @@ public class PostDomain {
         log.info("[GET] /article 호출");
         var sessionKey = request.getCookie("sessionKey");
         var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
-        return DynamicResponseBody.getInstance().getHtmlFile("/article/write.html",sessionUserInfo);
+        return DynamicResponseBody.getInstance().getHtmlFile("/article/write.html", sessionUserInfo);
     }
 
     @PreHandle(target = AuthHandler.class)
@@ -43,11 +45,21 @@ public class PostDomain {
         var sessionKey = request.getCookie("sessionKey");
         var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
 
-        var post = new Post(postTitle, postContent,sessionUserInfo.id());
+        var post = new Post(postTitle, postContent, sessionUserInfo.id());
         PostRepository.getInstance().save(post);
 
         return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", sessionUserInfo);
     }
 
+    @GetMapping(httpStatus = HttpStatus.OK, path = "/post")
+    public String getPost(@RequestParam(name = "id") long postId, HttpClientRequest request) {
+        log.info("[POST] /post 호출");
+        var sessionKey = request.getCookie("sessionKey");
+        var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
 
+        Post post = PostRepository.getInstance().findByPk(postId);
+        Member member = MemberRepository.getInstance().findByPk(post.getUserId());
+
+        return DynamicResponseBody.getInstance().getPostHtml("/article/post.html", sessionUserInfo, post,member);
+    }
 }

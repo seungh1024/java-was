@@ -1,5 +1,8 @@
 package codesquad.command.domain;
 
+import codesquad.db.post.Post;
+import codesquad.db.post.PostAndMember;
+import codesquad.db.post.PostRepository;
 import codesquad.db.user.Member;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.file.CustomFileReader;
@@ -12,6 +15,7 @@ import java.util.Objects;
 
 public class DynamicResponseBody {
     private static final DynamicResponseBody responseBody = new DynamicResponseBody();
+    private static final PostRepository postRepository = PostRepository.getInstance();
 
     private static final String userDefault = "<li class=\"header__menu__item\">\n" +
             "<a class=\"btn btn_contained btn_size_s\" href=\"/login\">로그인</a>\n" +
@@ -41,12 +45,6 @@ public class DynamicResponseBody {
         return responseBody;
     }
 
-    public String getMainHtml(String uri , SessionUserInfo sessionUserInfo) {
-        var headerHtml = getHeaderHtml(sessionUserInfo);
-        var html = getHtmlBody(uri);
-
-        return html.replace("{{dynamicButton}}", headerHtml);
-    }
 
     public String getUserListHtml(String uri ,SessionUserInfo sessionUserInfo, List<Member> userInfoList) {
         var headerHtml = getHeaderHtml(sessionUserInfo);
@@ -115,11 +113,55 @@ public class DynamicResponseBody {
         return html;
     }
 
-    public String getHtmlFile(String path, SessionUserInfo sessionUserInfo){
+
+    public String getHtmlFile(String path, SessionUserInfo sessionUserInfo) {
         var totalPath = "static"+path;
         var inputStream = this.getClass().getClassLoader().getResourceAsStream(totalPath);
         var html = new String(CustomFileReader.getInstance().readFileWithByte(inputStream));
         var headerHtml = getHeaderHtml(sessionUserInfo);
-        return html.replace("{{dynamicButton}}", headerHtml);
+        html = html.replace("{{dynamicButton}}", headerHtml);
+        html = html.replace("{{postList}}",getPostListHtml());
+
+        return html;
+    }
+
+    public String getPostListHtml() {
+        List<PostAndMember> postList = postRepository.getPostList();
+        if (Objects.isNull(postList)) {
+            return "";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<table border=\"1\">").append("\n");
+            sb.append("<thead>").append("\n");
+            sb.append("<tr>").append("\n");
+            sb.append("<th>작성자</th>").append("\n");
+            sb.append("<th>게시글 제목</th>").append("\n");
+            sb.append("</tr>").append("\n");
+            sb.append("</thead>").append("\n");
+            sb.append("<tbody>").append("\n");
+            for (PostAndMember pam : postList) {
+                sb.append("<tr>\n")
+                        .append("<td>").append(pam.memberName()).append("</td>")
+                        .append("<td>").append("<a href=/post?id=").append(pam.id()).append(">").append(pam.title()).append("</td>")
+                        .append("</tr>\n");
+            }
+            sb.append("</tbody>").append("\n");
+            sb.append("</table>").append("\n");
+
+            return sb.toString();
+        }
+    }
+
+    public String getPostHtml(String path, SessionUserInfo sessionUserInfo, Post post, Member member) {
+        var totalPath = "static"+path;
+        var inputStream = this.getClass().getClassLoader().getResourceAsStream(totalPath);
+        var html = new String(CustomFileReader.getInstance().readFileWithByte(inputStream));
+        var headerHtml = getHeaderHtml(sessionUserInfo);
+        html = html.replace("{{dynamicButton}}", headerHtml);
+        html = html.replace("{{postTitle}}", post.getTitle());
+        html = html.replace("{{memberName}}", member.getName());
+        html = html.replace("{{postContent}}", post.getContent());
+
+        return html;
     }
 }

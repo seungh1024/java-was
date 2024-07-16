@@ -6,6 +6,30 @@
     <link href="../reset.css" rel="stylesheet" />
     <link href="../global.css" rel="stylesheet" />
     <link href="../main.css" rel="stylesheet" />
+    <style>
+      table {
+        width: 80%;
+        margin: 25px auto;
+        border-collapse: collapse;
+        font-family: Arial, sans-serif;
+        font-size: 16px;
+        text-align: left;
+      }
+      th, td {
+        padding: 12px;
+        border: 1px solid #ddd;
+      }
+      th {
+        background-color: #f2f2f2;
+        color: #333;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      tr:hover {
+        background-color: #f1f1f1;
+      }
+    </style>
   </head>
   <body>
     <div class="container">
@@ -17,7 +41,7 @@
       </header>
       <div class="wrapper">
         <div class="post">
-
+          {{postList}}
         </ul>
         <nav class="nav">
           <ul class="nav__menu">
