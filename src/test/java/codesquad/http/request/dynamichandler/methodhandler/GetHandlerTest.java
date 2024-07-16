@@ -1,7 +1,7 @@
 package codesquad.http.request.dynamichandler.methodhandler;
 
 import codesquad.command.CommandManager;
-import codesquad.command.domain.user.MemberDomain;
+import codesquad.command.domain.member.MemberDomain;
 import codesquad.http.HttpStatus;
 import codesquad.http.request.dynamichandler.DynamicHandleResult;
 import codesquad.http.request.format.HttpMethod;

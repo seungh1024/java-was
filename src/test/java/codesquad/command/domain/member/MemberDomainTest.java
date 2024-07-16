@@ -1,7 +1,9 @@
-package codesquad.command.domain.user;
+package codesquad.command.domain.member;
 
+import java.util.List;
 import java.util.Map;
 
+import codesquad.command.domain.DynamicResponseBody;
 import codesquad.db.user.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,9 +39,8 @@ class MemberDomainTest {
 		Member member = MemberRepository.getInstance().findById(userId);
 		if (member != null) {
 			MemberRepository.getInstance().delete(member);
-		} else {
-			MemberRepository.getInstance().save(new Member(userId, password, userName, userEmail));
 		}
+		MemberRepository.getInstance().save(new Member(userId, password, userName, userEmail));
 	}
 
 	@Nested
@@ -106,6 +107,8 @@ class MemberDomainTest {
 		void request_with_incorrect_user_info() {
 			// given
 			var httpClientResponse = new HttpClientResponse();
+			Member member = new Member(userId, password, userName, userEmail);
+			MemberRepository.getInstance().delete(member);
 
 			// when
 			var customException = assertThrows(CustomException.class, () -> {
@@ -126,7 +129,7 @@ class MemberDomainTest {
 		@DisplayName("로그아웃을 하면 세션 정보가 사라져야 한다")
 		void session_info_deleted_after_logout() {
 			// given
-			var sessionUserInfo = new SessionUserInfo(1,userId, userName);
+			var sessionUserInfo = new SessionUserInfo(1, userId, userName);
 			String value = Session.getInstance().setSession(sessionUserInfo);
 
 			var httpClientRequest = new HttpClientRequest(
@@ -146,5 +149,59 @@ class MemberDomainTest {
 		}
 	}
 
+	@Nested
+	@DisplayName("사용자 리스트 테스트")
+	class MemberListTest{
 
+		@Test
+		@DisplayName("로그인한 사용자는 사용자 리스트를 반환받는다.")
+		void request_with_login(){
+			// given
+			Member member = new Member("loginTest", "password", "name", "email");
+			MemberRepository.getInstance().save(member);
+			var sessionUserInfo = new SessionUserInfo(1, userId, userName);
+			var httpClientRequest = new HttpClientRequest(
+				new HttpRequest(HttpMethod.POST, "testUri", FileExtension.HTML, "http 1.1", Map.of(),
+					Map.of(), "body"));
+			httpClientRequest.setUserInfo(sessionUserInfo);
+
+			// when
+			String userList = MemberDomain.getInstance().getUserList(httpClientRequest);
+
+			// then
+			List<Member> memberList = MemberRepository.getInstance().findMemberList();
+			String userListHtml = DynamicResponseBody.getInstance()
+				.getUserListHtml("/dynamic/userList.html", sessionUserInfo, memberList);
+			MemberRepository.getInstance().delete(member);
+			assertEquals(userListHtml, userList);
+		}
+
+	}
+
+	@Nested
+	@DisplayName("html 페이지 조회 테스트")
+	class MemberHtmlText {
+
+		@Test
+		@DisplayName("회원가입 페이지 요청을 하면 회원가입 페이지를 응답한다.")
+		void request_of_registration_page() {
+			// when
+			String registrationHtml = MemberDomain.getInstance().getRegistrationHtml();
+
+			// then
+			String expectedHtml = DynamicResponseBody.getInstance().getHtmlFile("/registration/index.html", null);
+			assertEquals(expectedHtml,registrationHtml);
+		}
+
+		@Test
+		@DisplayName("로그인 페이지 요청을 하면 로그인 페이지를 응답한다.")
+		void request_of_login_page() {
+			// when
+			String loginHtml = MemberDomain.getInstance().getLoginHtml();
+
+			// then
+			String expectedHtml = DynamicResponseBody.getInstance().getHtmlFile("/login/index.html", null);
+			assertEquals(expectedHtml, loginHtml);
+		}
+	}
 }

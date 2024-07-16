@@ -106,20 +106,8 @@ class MemberTest {
 
             for (int i = 0; i < queueCapacity; i++) {
                 int idx = i;
-                threadPoolExecutor.execute(() -> {
-                    try {
-                        Member findMember = MemberRepository.getInstance().findById(userId+idx);
-                        user.delete(findMember);
-
-                    } catch (CustomException exception) {
-                        exceptionCount.getAndIncrement();
-                    } catch (Exception exception) {
-                        otherExceptionCount.getAndIncrement();
-                    } finally {
-                        countDownLatch.countDown();
-                        successCount.getAndIncrement();
-                    }
-                });
+                Member findMember = MemberRepository.getInstance().findById(userId+idx);
+                user.delete(findMember);
             }
 
             // then

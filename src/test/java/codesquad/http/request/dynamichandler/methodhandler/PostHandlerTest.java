@@ -1,7 +1,7 @@
 package codesquad.http.request.dynamichandler.methodhandler;
 
 import codesquad.command.CommandManager;
-import codesquad.command.domain.user.MemberDomain;
+import codesquad.command.domain.member.MemberDomain;
 import codesquad.db.user.Member;
 import codesquad.db.user.MemberRepository;
 import codesquad.http.HttpStatus;
@@ -31,8 +31,6 @@ class PostHandlerTest {
         Member member = MemberRepository.getInstance().findById(userId);
         if (member != null) {
             MemberRepository.getInstance().delete(member);
-        } else {
-            MemberRepository.getInstance().save(new Member(userId, password, userName, userEmail));
         }
     }
 
