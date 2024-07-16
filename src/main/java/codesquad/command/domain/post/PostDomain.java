@@ -44,7 +44,7 @@ public class PostDomain {
         var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
 
         var post = new Post(postTitle, postContent,sessionUserInfo.id());
-        PostRepository.getInstance().save(post,sessionUserInfo);
+        PostRepository.getInstance().save(post);
 
         return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", sessionUserInfo);
     }

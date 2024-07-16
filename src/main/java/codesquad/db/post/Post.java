@@ -28,6 +28,10 @@ public class Post {
         return content;
     }
 
+    public long getUserId() {
+        return userId;
+    }
+
     public void setId(long id) {
         this.id = id;
     }
@@ -36,12 +40,8 @@ public class Post {
         this.title = title;
     }
 
-    public void setPost(String content) {
+    public void setContent(String content) {
         this.content = content;
-    }
-
-    public long getUserId() {
-        return userId;
     }
 
     public void setUserId(long userId) {
