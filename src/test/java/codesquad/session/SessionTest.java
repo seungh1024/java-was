@@ -11,7 +11,7 @@ class SessionTest {
 	@DisplayName("세션 생성, 조회, 삭제 테스트")
 	void session_create_select_delete() {
 		// given
-		var sessionUserInfo = new SessionUserInfo("userId", "userName");
+		var sessionUserInfo = new SessionUserInfo(1,"userId", "userName");
 		var cookie = Session.getInstance().setSession(sessionUserInfo);
 
 		// when

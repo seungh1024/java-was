@@ -115,7 +115,8 @@ public class CommandManager {
 		}
 	}
 
-	public DomainResponse execute(HttpRequest httpRequest) {
+	public DomainResponse execute(HttpRequest
+										  httpRequest) {
 		log.debug("[Executing] {}", httpRequest);
 		var httpMethod = httpRequest.method();
 		var path = httpRequest.uri();
@@ -137,12 +138,6 @@ public class CommandManager {
 			var httpClientResponse = new HttpClientResponse();
 			httpClientResponse.setHeader("Location","/login/index.html");
 			return new DomainResponse(HttpStatus.FOUND,  httpClientResponse, false, method.getReturnType(), null);
-		} else{
-			// 정적 파일 동적 처리
-			if (httpRequest.uri().contains("index.html")) {
-				return getStaticResponse(httpRequest);
-
-			}
 		}
 		log.info("[Execute Method] : , {}",method);
 

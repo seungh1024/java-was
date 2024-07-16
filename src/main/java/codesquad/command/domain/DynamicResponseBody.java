@@ -14,10 +14,10 @@ public class DynamicResponseBody {
     private static final DynamicResponseBody responseBody = new DynamicResponseBody();
 
     private static final String userDefault = "<li class=\"header__menu__item\">\n" +
-            "<a class=\"btn btn_contained btn_size_s\" href=\"/login/index.html\">로그인</a>\n" +
+            "<a class=\"btn btn_contained btn_size_s\" href=\"/login\">로그인</a>\n" +
             "</li>\n" +
             "<li class=\"header__menu__item\">\n" +
-            "<a class=\"btn btn_ghost btn_size_s\" href=\"/registration/index.html\">\n" +
+            "<a class=\"btn btn_ghost btn_size_s\" href=\"/registration\">\n" +
             "    회원 가입\n" +
             "</a>\n" +
             "</li>";
@@ -62,9 +62,9 @@ public class DynamicResponseBody {
         sb.append("<tbody>").append("\n");
         for (Member userInfo : userInfoList) {
             sb.append("<tr>\n")
-                    .append("<td>").append(userInfo.userId()).append("</td>")
-                    .append("<td>").append(userInfo.name()).append("</td>")
-                    .append("<td>").append(userInfo.email()).append("</td>")
+                    .append("<td>").append(userInfo.getMemberId()).append("</td>")
+                    .append("<td>").append(userInfo.getName()).append("</td>")
+                    .append("<td>").append(userInfo.getEmail()).append("</td>")
                     .append("</tr>\n");
         }
         sb.append("</tbody>").append("\n");

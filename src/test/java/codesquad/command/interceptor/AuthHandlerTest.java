@@ -24,7 +24,7 @@ class AuthHandlerTest {
         @DisplayName("로그인한 사용자라면 true를 리턴한다")
         void request_with_login_user(){
             // given
-            SessionUserInfo sessionUserInfo = new SessionUserInfo("testId", "testName");
+            SessionUserInfo sessionUserInfo = new SessionUserInfo(1,"testId", "testName");
             String sessionKey = Session.getInstance().setSession(sessionUserInfo);
             Cookie cookie = new Cookie("sessionKey", sessionKey);
             HttpRequest httpRequest = new HttpRequest(HttpMethod.GET, "/user/list", FileExtension.DYNAMIC, "HTTP/1.1", Map.of(), Map.of("sessionKey",cookie), "");

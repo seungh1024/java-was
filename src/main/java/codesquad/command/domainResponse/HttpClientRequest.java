@@ -19,8 +19,4 @@ public class HttpClientRequest {
     public Cookie getCookie(String cookieName) {
         return cookies.get(cookieName);
     }
-
-    public String getUri() {
-        return this.uri;
-    }
 }

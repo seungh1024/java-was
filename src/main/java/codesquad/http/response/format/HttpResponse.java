@@ -55,7 +55,7 @@ public record HttpResponse(
                 "<body>" +
                 "<h1>" + statusCode + " " + errorName + "</h1>" +
                 "<p>" + errorMessage + "</p>\n" +
-                "<a class=\"btn btn_contained btn_size_s\" href=\"/index.html\">메인으로</a>\n"+
+                "<a class=\"btn btn_contained btn_size_s\" href=\"/\">메인으로</a>\n"+
                 "</body>" +
                 "</html>";
         byte[] byteMessage = htmlMessage.getBytes();

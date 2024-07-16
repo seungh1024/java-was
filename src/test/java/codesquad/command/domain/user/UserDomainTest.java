@@ -2,6 +2,8 @@ package codesquad.command.domain.user;
 
 import java.util.Map;
 
+import codesquad.db.DBConnectionUtil;
+import codesquad.db.user.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import codesquad.command.domainResponse.HttpClientRequest;
 import codesquad.command.domainResponse.HttpClientResponse;
-import codesquad.db.user.MemberRepository;
 import codesquad.db.user.Member;
 import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
@@ -27,13 +28,19 @@ class UserDomainTest {
 	String userId = "testId";
 	String password = "password";
 	String userName = "testName";
-	String userEmail = "testEmail";
+	String userEmail = "testEmail@naver.com";
 	Cookie cookie = new Cookie("key", "value");
 
 	@BeforeEach
 	void init() {
-		MemberRepository.getInstance().deleteUserInfo(userId);
 		Session.getInstance().removeSession("value");
+
+		Member member = MemberRepository.getInstance().findById(userId);
+		if (member != null) {
+			MemberRepository.getInstance().delete(member);
+		} else {
+			MemberRepository.getInstance().save(new Member(userId, password, userName, userEmail));
+		}
 	}
 
 	@Nested
@@ -43,12 +50,15 @@ class UserDomainTest {
 		@Test
 		@DisplayName("아이디가 중복되지 않으면 사용자 생성에 성공한다.")
 		void request_with_another_user_id() {
+			// given
+			Member member = new Member(userId, password, userName, userEmail);
+			MemberRepository.getInstance().delete(member);
 
 			// when
-			var user = UserDomain.getInstance().createUser(userId, password, userName, userEmail);
+			var user = MemberDomain.getInstance().createUser(userId, password, userName, userEmail);
 
 			// then
-			assertEquals(new Member(userId, password, userName, userEmail), user);
+			assertEquals(member, user);
 		}
 
 		@Test
@@ -56,11 +66,10 @@ class UserDomainTest {
 		void request_with_same_user_id() {
 			// given
 			var userInfo = new Member(userId, password, userName, userEmail);
-			MemberRepository.getInstance().addUserInfo(userInfo);
 
 			// when
 			var customException = assertThrows(CustomException.class, () -> {
-				UserDomain.getInstance().createUser(userId, password, userName, userEmail);
+				MemberDomain.getInstance().createUser(userId, password, userName, userEmail);
 			});
 
 			// then
@@ -80,11 +89,10 @@ class UserDomainTest {
 		void request_with_correct_user_info() {
 			// given
 			var userInfo = new Member(userId, password, userName, userEmail);
-			MemberRepository.getInstance().addUserInfo(userInfo);
 			var httpClientResponse = new HttpClientResponse();
 
 			// when
-			UserDomain.getInstance().login(userId, password, httpClientResponse);
+			MemberDomain.getInstance().login(userId, password, httpClientResponse);
 
 			// then
 			var cookieInfo = httpClientResponse.getCookie();
@@ -102,7 +110,7 @@ class UserDomainTest {
 
 			// when
 			var customException = assertThrows(CustomException.class, () -> {
-				UserDomain.getInstance().login(userId, password, httpClientResponse);
+				MemberDomain.getInstance().login(userId, password, httpClientResponse);
 			});
 
 			//then
@@ -119,7 +127,7 @@ class UserDomainTest {
 		@DisplayName("로그아웃을 하면 세션 정보가 사라져야 한다")
 		void session_info_deleted_after_logout() {
 			// given
-			var sessionUserInfo = new SessionUserInfo(userId, userName);
+			var sessionUserInfo = new SessionUserInfo(1,userId, userName);
 			String value = Session.getInstance().setSession(sessionUserInfo);
 
 			var httpClientRequest = new HttpClientRequest(
@@ -129,7 +137,7 @@ class UserDomainTest {
 			httpClientResponse.setCookie("sessionKey", value);
 
 			// when
-			UserDomain.getInstance().logout(httpClientRequest, httpClientResponse);
+			MemberDomain.getInstance().logout(httpClientRequest, httpClientResponse);
 
 			// then
 			var session = Session.getInstance()

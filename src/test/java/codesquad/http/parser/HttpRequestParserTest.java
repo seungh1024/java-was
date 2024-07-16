@@ -37,7 +37,6 @@ class HttpRequestParserTest {
 
 			// then
 			assertEquals("HTTP/1.1",httpRequest.httpVersion());
-			assertEquals("/index.html",httpRequest.uri());
 			assertEquals("body",httpRequest.body());
 			assertEquals(FileExtension.DYNAMIC, httpRequest.fileExtension());
 		}

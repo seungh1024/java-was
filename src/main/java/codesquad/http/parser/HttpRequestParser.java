@@ -69,6 +69,13 @@ public class HttpRequestParser {
         var method = HttpMethod.fromString(firstLine[0]);
         var uri = firstLine[1];
         var fileExtension = getFileExtension(uri);
+
+        if(uri.contains("/index.html")) {
+            uri = uri.substring(0,uri.lastIndexOf("/index.html"));
+            if (uri.length() == 0) {
+                uri = "/";
+            }
+        }
         var httpVersion = firstLine[2];
 
         var headers = new HashMap<String,String>();

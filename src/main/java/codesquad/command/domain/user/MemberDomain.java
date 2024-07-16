@@ -23,49 +23,46 @@ import org.slf4j.LoggerFactory;
 
 
 @Command
-public class UserDomain {
-	private static final Logger log = LoggerFactory.getLogger(UserDomain.class);
-	private static final UserDomain userDomain = new UserDomain();
+public class MemberDomain {
+	private static final Logger log = LoggerFactory.getLogger(MemberDomain.class);
+	private static final MemberDomain userDomain = new MemberDomain();
 
-	private UserDomain() {
+	private MemberDomain() {
 
 	}
 
-	public static UserDomain getInstance() {
+	public static MemberDomain getInstance() {
 		return userDomain;
 	}
 
-	@Redirect(redirection = "/index.html")
+	@Redirect(redirection = "/")
 	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/create")
 	public Member createUser(@RequestParam(name = "userId") String userId, @RequestParam(name = "password") String password, @RequestParam(name = "name") String name, @RequestParam(name = "email") String email) {
-
+		log.info("[Create User] create user start");
 		var userInfo = new Member(userId, password, name, email);
-		// MemberRepository.getInstance().addUserInfo(userInfo);
-
-		// return MemberRepository.getInstance().getUserInfo(userId);
-		return null;
+		return MemberRepository.getInstance().save(userInfo);
 	}
 
-	@Redirect(redirection = "/main/index.html")
+	@Redirect(redirection = "/main")
 	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/login")
 	public void login(@RequestParam(name = "userId") String userId, @RequestParam(name = "password") String password, HttpClientResponse response) {
 
-		// Member userInfo = MemberRepository.getInstance().getUserInfo(userId);
-		// if (Objects.isNull(userInfo)) {
-		// 	throw ClientErrorCode.USER_NOT_FOUND.exception();
-		// }
-		// if (!Objects.equals(userInfo.password(), password)) {
-		// 	log.debug("[Login] Invalid username or password");
-		// 	return;
-		// }
-		//
-		// String sessionKey = Session.getInstance().setSession(new SessionUserInfo(userInfo.userId(), userInfo.name()));
-		// response.setCookie("sessionKey", sessionKey);
-		// log.debug("[Login] Login successful");
+		 Member member = MemberRepository.getInstance().findById(userId);
+		 if (Objects.isNull(member)) {
+		 	throw ClientErrorCode.USER_NOT_FOUND.exception();
+		 }
+		 if (!Objects.equals(member.getPassword(), password)) {
+		 	log.debug("[Login] Invalid username or password");
+		 	return;
+		 }
+
+		 String sessionKey = Session.getInstance().setSession(new SessionUserInfo(member.getId(),member.getMemberId(), member.getName()));
+		 response.setCookie("sessionKey", sessionKey);
+		 log.debug("[Login] Login successful");
 
 	}
 
-	@Redirect(redirection = "/index.html")
+	@Redirect(redirection = "/")
 	@PostMapping(httpStatus = HttpStatus.FOUND, path = "/user/logout")
 	public void logout(HttpClientRequest request, HttpClientResponse response) {
 		var cookie = request.getCookie("sessionKey");
@@ -81,11 +78,19 @@ public class UserDomain {
 	public String getUserList(HttpClientRequest request) {
 		var sessionKey = request.getCookie("sessionKey");
 		var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
-		// var userList = MemberRepository.getInstance().getUserList();
-		// return DynamicResponseBody.getInstance().getUserListHtml("/dynamic/userList.html", sessionUserInfo, userList);
+		var userList = MemberRepository.getInstance().findMemberList();
 
-		return null;
+		return DynamicResponseBody.getInstance().getUserListHtml("/dynamic/userList.html", sessionUserInfo, userList);
 	}
 
 
+	@GetMapping(httpStatus = HttpStatus.OK, path = "/registration")
+	public String getRegistrationHtml() {
+		return DynamicResponseBody.getInstance().getHtmlFile("/registration/index.html", null);
+	}
+
+	@GetMapping(httpStatus = HttpStatus.OK, path = "/login")
+	public String getLoginHtml() {
+		return DynamicResponseBody.getInstance().getHtmlFile("/login/index.html", null);
+	}
 }

@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserTest {
+class MemberTest {
 
 
     String userId = "testId";
@@ -27,7 +27,8 @@ class UserTest {
 
     @BeforeEach
     void setUp(){
-        MemberRepository.getInstance().deleteUserInfo(userId);
+        Member member = new Member(userId, userPass, userName, userEmail);
+        MemberRepository.getInstance().delete(member);
     }
 
     @Nested
@@ -38,9 +39,9 @@ class UserTest {
         @DisplayName("같은 아이디의 사용자가 있으면, 회원 가입 시에 예외를 반환한다.")
         void request_with_already_existed_userId() throws InterruptedException {
             // given
-            MemberRepository user = MemberRepository.getInstance();
-            Member userInfo = new Member(userId, userPass, userName, userEmail);
-            user.addUserInfo(userInfo);
+            MemberRepository memberRepository = MemberRepository.getInstance();
+            Member member = new Member(userId, userPass, userName, userEmail);
+            memberRepository.save(member);
             ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(queueCapacity));
             CountDownLatch countDownLatch = new CountDownLatch(queueCapacity);
             AtomicInteger exceptionCount = new AtomicInteger(0);
@@ -51,7 +52,7 @@ class UserTest {
             for (int i = 0; i < queueCapacity; i++) {
                 threadPoolExecutor.execute(() -> {
                     try {
-                        user.addUserInfo(new Member(userId, userPass, userName, userEmail));
+                        memberRepository.save(new Member(userId, userPass, userName, userEmail));
 
                     } catch (CustomException exception) {
                         exceptionCount.getAndIncrement();
@@ -68,7 +69,7 @@ class UserTest {
             // then
             assertEquals(exceptionCount.get(), queueCapacity);
             assertEquals(otherExceptionCount.get(), 0);
-            assertEquals(user.getUserInfo(userId), userInfo);
+            assertEquals(memberRepository.findById(userId), member);
         }
 
         @Test
@@ -88,7 +89,7 @@ class UserTest {
                 int idx = i;
                 threadPoolExecutor.execute(() -> {
                     try {
-                        user.addUserInfo(new Member(userId+idx, userPass, userName, userEmail));
+                        user.save(new Member(userId+idx, userPass, userName, userEmail));
 
                     } catch (CustomException exception) {
                         exceptionCount.getAndIncrement();
@@ -102,6 +103,24 @@ class UserTest {
             }
 
             countDownLatch.await();
+
+            for (int i = 0; i < queueCapacity; i++) {
+                int idx = i;
+                threadPoolExecutor.execute(() -> {
+                    try {
+                        Member findMember = MemberRepository.getInstance().findById(userId+idx);
+                        user.delete(findMember);
+
+                    } catch (CustomException exception) {
+                        exceptionCount.getAndIncrement();
+                    } catch (Exception exception) {
+                        otherExceptionCount.getAndIncrement();
+                    } finally {
+                        countDownLatch.countDown();
+                        successCount.getAndIncrement();
+                    }
+                });
+            }
 
             // then
             assertEquals(exceptionCount.get(), 0);
