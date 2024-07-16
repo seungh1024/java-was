@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,10 +51,10 @@ class PostRepositoryTest {
             SessionUserInfo sessionUserInfo = new SessionUserInfo(postUserId, null, null);
 
             //when
-            long pk = postRepository.save(post);
+            Post savePost = postRepository.save(post);
 
             // then
-            Post findPost = postRepository.findByPk(pk);
+            Post findPost = postRepository.findByPk(savePost.getId());
             postRepository.delete(findPost);
 
             assertNotNull(findPost);
@@ -67,15 +68,36 @@ class PostRepositoryTest {
             SessionUserInfo sessionUserInfo = new SessionUserInfo(postUserId, null, null);
 
             //when
-            long pk = postRepository.save(post);
-            Post findPost = postRepository.findByPk(pk);
+            Post savePost = postRepository.save(post);
+            Post findPost = postRepository.findByPk(savePost.getId());
             postRepository.delete(findPost);
 
             // then
-            Post deletedPost = postRepository.findByPk(pk);
+            Post deletedPost = postRepository.findByPk(savePost.getId());
 
             assertNull(deletedPost);
         }
 
+    }
+
+    @Nested
+    @DisplayName("게시글 리스트 조회 테스트")
+    class PostListTest {
+
+        @Test
+        @DisplayName("post 리스트 조회는 post 이름과 사용자 정보를 조회할 수 있다.")
+        void request_with_post_list() {
+            // given
+            Post post = new Post(postTitle, postContent, postUserId);
+            Post savePost = postRepository.save(post);
+
+            // when
+            List<PostAndMember> postList = postRepository.getPostList();
+            postRepository.delete(savePost);
+
+            // then
+            assertNotNull(postList);
+
+        }
     }
 }

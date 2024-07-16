@@ -20,7 +20,7 @@ public class PostRepository {
         return postRepository;
     }
 
-    public long save(Post post) {
+    public Post save(Post post) {
         log.info("[Post Save], post = {}", post);
 
         var sql = """
@@ -45,7 +45,9 @@ public class PostRepository {
             if (rs.next()) {
                 pk = rs.getLong(1);
             }
-            return pk;
+            post.setId(pk);
+
+            return post;
         } catch (SQLException exception) {
             log.error("[SQLException] throw error when post save, Class Info = {}", PostRepository.class);
             throw new RuntimeException(exception);

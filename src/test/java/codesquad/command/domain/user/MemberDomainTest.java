@@ -22,7 +22,7 @@ import codesquad.util.FileExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class UserDomainTest {
+class MemberDomainTest {
 
 	String userId = "testId";
 	String password = "password";
