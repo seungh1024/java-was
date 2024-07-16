@@ -1,4 +1,4 @@
-package codesquad.command.domain.user;
+package codesquad.command.domain.member;
 
 import java.util.Objects;
 
@@ -76,11 +76,9 @@ public class MemberDomain {
 	@PreHandle(target = AuthHandler.class)
 	@GetMapping(httpStatus = HttpStatus.OK, path = "/user/list")
 	public String getUserList(HttpClientRequest request) {
-		var sessionKey = request.getCookie("sessionKey");
-		var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
 		var userList = MemberRepository.getInstance().findMemberList();
 
-		return DynamicResponseBody.getInstance().getUserListHtml("/dynamic/userList.html", sessionUserInfo, userList);
+		return DynamicResponseBody.getInstance().getUserListHtml("/dynamic/userList.html", request.getUserInfo(), userList);
 	}
 
 

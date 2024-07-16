@@ -33,33 +33,28 @@ public class PostDomain {
     @GetMapping(httpStatus = HttpStatus.OK, path = "/article")
     public String getPostPage(HttpClientRequest request) {
         log.info("[GET] /article 호출");
-        var sessionKey = request.getCookie("sessionKey");
-        var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
-        return DynamicResponseBody.getInstance().getHtmlFile("/article/write.html", sessionUserInfo);
+        return DynamicResponseBody.getInstance().getHtmlFile("/article/write.html", request.getUserInfo());
     }
 
     @PreHandle(target = AuthHandler.class)
     @PostMapping(httpStatus = HttpStatus.OK, path = "/post/create")
     public String createPost(@RequestParam(name = "title") String postTitle, @RequestParam(name = "content") String postContent, HttpClientRequest request) {
         log.info("[POST] /create/post 호출");
-        var sessionKey = request.getCookie("sessionKey");
-        var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
 
-        var post = new Post(postTitle, postContent, sessionUserInfo.id());
+        var userInfo = request.getUserInfo();
+        var post = new Post(postTitle, postContent, userInfo.id());
         PostRepository.getInstance().save(post);
 
-        return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", sessionUserInfo);
+        return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", userInfo);
     }
 
     @GetMapping(httpStatus = HttpStatus.OK, path = "/post")
     public String getPost(@RequestParam(name = "id") long postId, HttpClientRequest request) {
         log.info("[POST] /post 호출");
-        var sessionKey = request.getCookie("sessionKey");
-        var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
 
         Post post = PostRepository.getInstance().findByPk(postId);
         Member member = MemberRepository.getInstance().findByPk(post.getUserId());
 
-        return DynamicResponseBody.getInstance().getPostHtml("/article/post.html", sessionUserInfo, post,member);
+        return DynamicResponseBody.getInstance().getPostHtml("/article/post.html", request.getUserInfo(), post,member);
     }
 }

@@ -3,7 +3,7 @@ package codesquad;
 import codesquad.command.CommandManager;
 import codesquad.command.domain.post.PostDomain;
 import codesquad.command.domain.main.MainDomain;
-import codesquad.command.domain.user.MemberDomain;
+import codesquad.command.domain.member.MemberDomain;
 import codesquad.webserver.ConnectionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

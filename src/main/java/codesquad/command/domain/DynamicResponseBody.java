@@ -58,12 +58,14 @@ public class DynamicResponseBody {
         sb.append("</tr>").append("\n");
         sb.append("</thead>").append("\n");
         sb.append("<tbody>").append("\n");
-        for (Member userInfo : userInfoList) {
-            sb.append("<tr>\n")
+        if (Objects.nonNull(userInfoList)) {
+            for (Member userInfo : userInfoList) {
+                sb.append("<tr>\n")
                     .append("<td>").append(userInfo.getMemberId()).append("</td>")
                     .append("<td>").append(userInfo.getName()).append("</td>")
                     .append("<td>").append(userInfo.getEmail()).append("</td>")
                     .append("</tr>\n");
+            }
         }
         sb.append("</tbody>").append("\n");
         sb.append("</table>").append("\n");
