@@ -2,6 +2,7 @@ package codesquad.db;
 
 import java.sql.Connection;
 
+import codesquad.db.util.DBConnectionUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

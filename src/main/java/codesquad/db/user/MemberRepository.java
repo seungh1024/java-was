@@ -7,13 +7,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import codesquad.exception.client.ClientErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import codesquad.db.DBConnectionUtil;
+import codesquad.db.util.DBConnectionUtil;
 
 public class MemberRepository {
 	private final Logger log = LoggerFactory.getLogger(MemberRepository.class);
@@ -39,7 +38,6 @@ public class MemberRepository {
 
 		try {
 			con = getConnection();
-			log.info("connection successful");
 			ps = con.prepareStatement(sql);
 			ps.setString(1, member.getMemberId());
 			ps.setString(2, member.getPassword());
@@ -49,7 +47,7 @@ public class MemberRepository {
 
 			return member;
 		} catch (SQLException exception) {
-			log.error("[SQLException] throw error when save, Class Info = {}", MemberRepository.class);
+			log.error("[SQLException] throw error when member save, Class Info = {}", MemberRepository.class);
 			throw new RuntimeException(exception);
 		}finally {
 			close(con, ps, null);
@@ -161,33 +159,7 @@ public class MemberRepository {
 	}
 
 	private void close(Connection connection, Statement stmt, ResultSet rs) {
-		if (Objects.nonNull(rs)) {
-			try {
-				rs.close();
-			} catch (SQLException exception) {
-				log.error("[SQLException] Class Info = {}, Exception with ResultSet close", MemberRepository.class);
-				exception.printStackTrace();
-			}
-		}
-
-		if (Objects.nonNull(stmt)) {
-			try {
-				stmt.close();
-			} catch (SQLException exception) {
-				log.error("[SQLException] Class Info = {}, Exception with Statement close", MemberRepository.class);
-				exception.printStackTrace();
-			}
-		}
-
-		if (Objects.nonNull(connection)) {
-			try {
-				connection.close();
-			} catch (SQLException exception) {
-				log.error("[SQLException] Class Info = {}, Exception with Connection close", MemberRepository.class);
-				exception.printStackTrace();
-			}
-		}
-
+		DBConnectionUtil.close(connection,stmt,rs);
 	}
 
 	private Connection getConnection() {

@@ -1,7 +1,7 @@
 package codesquad;
 
 import codesquad.command.CommandManager;
-import codesquad.command.domain.board.BoardDomain;
+import codesquad.command.domain.post.PostDomain;
 import codesquad.command.domain.main.MainDomain;
 import codesquad.command.domain.user.MemberDomain;
 import codesquad.webserver.ConnectionHandler;
@@ -34,6 +34,6 @@ public class Main {
 
     public static void initCommand() {
         var commandManager = CommandManager.getInstance();
-        commandManager.initMethod(MemberDomain.class, BoardDomain.class, MainDomain.class);
+        commandManager.initMethod(MemberDomain.class, PostDomain.class, MainDomain.class);
     }
 }

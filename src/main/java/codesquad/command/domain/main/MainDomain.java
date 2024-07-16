@@ -8,8 +8,11 @@ import codesquad.command.domainResponse.HttpClientRequest;
 import codesquad.command.interceptor.AuthHandler;
 import codesquad.http.HttpStatus;
 import codesquad.session.Session;
+import codesquad.session.SessionUserInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Objects;
 
 @Command
 public class MainDomain {
@@ -25,16 +28,17 @@ public class MainDomain {
     public String getMainPage(HttpClientRequest request) {
         log.info("[GET] / 호출");
 
-        return DynamicResponseBody.getInstance().getHtmlFile("/index.html", null);
+        return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", null);
     }
 
-    @PreHandle(target = AuthHandler.class)
     @GetMapping(httpStatus = HttpStatus.OK, path = "/main")
     public String getLoginMainPage(HttpClientRequest request) {
         log.info("[GET] /main 호출");
         var sessionKey = request.getCookie("sessionKey");
-        var sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
-
+        SessionUserInfo sessionUserInfo = null;
+        if (!Objects.isNull(sessionKey)) {
+            sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
+        }
         return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html",sessionUserInfo);
     }
 }

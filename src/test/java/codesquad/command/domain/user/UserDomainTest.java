@@ -2,7 +2,6 @@ package codesquad.command.domain.user;
 
 import java.util.Map;
 
-import codesquad.db.DBConnectionUtil;
 import codesquad.db.user.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
