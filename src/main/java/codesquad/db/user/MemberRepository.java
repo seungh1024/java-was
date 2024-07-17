@@ -43,7 +43,14 @@ public class MemberRepository {
 			ps.setString(2, member.getPassword());
 			ps.setString(3, member.getName());
 			ps.setString(4, member.getEmail());
-			int pk = ps.executeUpdate();
+			ps.executeUpdate();
+
+			var rs = ps.getGeneratedKeys();
+			long pk = 0;
+			if (rs.next()) {
+				pk = rs.getLong(1);
+			}
+
 			member.setId(pk);
 
 			return member;
