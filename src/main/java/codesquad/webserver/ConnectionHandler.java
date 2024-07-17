@@ -104,10 +104,6 @@ public class ConnectionHandler {
                 }
 
             }).whenComplete((applyResult,throwable)->{
-                if (Objects.isNull(applyResult)) {
-
-                    // return;
-                }
                 HttpResponse response = applyResult;
 
                 if (!Objects.isNull(applyResult) && Objects.isNull(throwable)) { // 정상 응답 처리
@@ -119,6 +115,7 @@ public class ConnectionHandler {
                         var errorResponse = HttpResponse.getErrorResponse(exception);
                         doResponse(clientSocket, errorResponse);
                     } catch (Exception e) {
+                        log.error("[Server Error] 예외 응답 처리 중 예외 발생");
                         e.printStackTrace();
                     }
                 }
