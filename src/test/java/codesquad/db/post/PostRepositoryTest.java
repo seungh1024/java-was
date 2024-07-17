@@ -1,5 +1,6 @@
 package codesquad.db.post;
 
+import codesquad.command.domain.post.PostDomain;
 import codesquad.db.user.Member;
 import codesquad.db.user.MemberRepository;
 import codesquad.session.SessionUserInfo;
@@ -48,7 +49,6 @@ class PostRepositoryTest {
         void request_with_post_create() {
             //given
             Post post = new Post(postTitle, postContent, postUserId);
-            SessionUserInfo sessionUserInfo = new SessionUserInfo(postUserId, null, null);
 
             //when
             Post savePost = postRepository.save(post);
@@ -65,7 +65,6 @@ class PostRepositoryTest {
         void request_with_post_delete() {
             //given
             Post post = new Post(postTitle, postContent, postUserId);
-            SessionUserInfo sessionUserInfo = new SessionUserInfo(postUserId, null, null);
 
             //when
             Post savePost = postRepository.save(post);
@@ -78,10 +77,23 @@ class PostRepositoryTest {
             assertNull(deletedPost);
         }
 
+        @Test
+        @DisplayName("post pk 조회 테스트")
+        void request_with_post_pk() {
+            // given
+            Post post = new Post(postTitle, postContent, postUserId);
+            Post savePost = postRepository.save(post);
+
+            // when
+            Post findPost = postRepository.findByPk(savePost.getId());
+
+            // then
+            assertEquals(savePost, findPost);
+        }
     }
 
     @Nested
-    @DisplayName("게시글 리스트 조회 테스트")
+    @DisplayName("게시글 조회 테스트")
     class PostListTest {
 
         @Test
@@ -99,5 +111,7 @@ class PostRepositoryTest {
             assertNotNull(postList);
 
         }
+
     }
+
 }

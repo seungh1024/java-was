@@ -13,7 +13,6 @@ import codesquad.db.post.PostRepository;
 import codesquad.db.user.Member;
 import codesquad.db.user.MemberRepository;
 import codesquad.http.HttpStatus;
-import codesquad.session.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

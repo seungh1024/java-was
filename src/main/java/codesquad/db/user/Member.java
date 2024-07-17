@@ -60,7 +60,7 @@ public class Member {
 
 	@Override
 	public String toString() {
-		return "id = "+id + ", password = "+password + ", name = "+name + ", email = "+email;
+		return "id = "+id + ", memeberId = "+memberId+ ", password = "+password + ", name = "+name + ", email = "+email;
 	}
 
 	@Override

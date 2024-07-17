@@ -30,7 +30,6 @@ class MemberDomainTest {
 	String password = "password";
 	String userName = "testName";
 	String userEmail = "testEmail@naver.com";
-	Cookie cookie = new Cookie("key", "value");
 
 	@BeforeEach
 	void init() {
@@ -40,7 +39,6 @@ class MemberDomainTest {
 		if (member != null) {
 			MemberRepository.getInstance().delete(member);
 		}
-		MemberRepository.getInstance().save(new Member(userId, password, userName, userEmail));
 	}
 
 	@Nested
@@ -66,6 +64,7 @@ class MemberDomainTest {
 		void request_with_same_user_id() {
 			// given
 			var userInfo = new Member(userId, password, userName, userEmail);
+			MemberRepository.getInstance().save(userInfo);
 
 			// when
 			var customException = assertThrows(CustomException.class, () -> {
@@ -89,6 +88,7 @@ class MemberDomainTest {
 		void request_with_correct_user_info() {
 			// given
 			var userInfo = new Member(userId, password, userName, userEmail);
+			MemberRepository.getInstance().save(userInfo);
 			var httpClientResponse = new HttpClientResponse();
 
 			// when
@@ -158,7 +158,13 @@ class MemberDomainTest {
 		void request_with_login(){
 			// given
 			Member member = new Member("loginTest", "password", "name", "email");
-			MemberRepository.getInstance().save(member);
+			Member findMember = MemberRepository.getInstance().findById("loginTest");
+			if (findMember != null) {
+				MemberRepository.getInstance().delete(findMember);
+			}
+			Member saveMember = MemberRepository.getInstance().save(member);
+
+
 			var sessionUserInfo = new SessionUserInfo(1, userId, userName);
 			var httpClientRequest = new HttpClientRequest(
 				new HttpRequest(HttpMethod.POST, "testUri", FileExtension.HTML, "http 1.1", Map.of(),
@@ -172,7 +178,7 @@ class MemberDomainTest {
 			List<Member> memberList = MemberRepository.getInstance().findMemberList();
 			String userListHtml = DynamicResponseBody.getInstance()
 				.getUserListHtml("/dynamic/userList.html", sessionUserInfo, memberList);
-			MemberRepository.getInstance().delete(member);
+			MemberRepository.getInstance().delete(saveMember);
 			assertEquals(userListHtml, userList);
 		}
 

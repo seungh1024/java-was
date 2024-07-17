@@ -43,7 +43,8 @@ public class MemberRepository {
 			ps.setString(2, member.getPassword());
 			ps.setString(3, member.getName());
 			ps.setString(4, member.getEmail());
-			ps.executeUpdate();
+			int pk = ps.executeUpdate();
+			member.setId(pk);
 
 			return member;
 		} catch (SQLException exception) {

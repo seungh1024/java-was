@@ -76,6 +76,14 @@ class MemberTest {
         @DisplayName("다른 아이디로 회원가입 하면 정상적으로 사용자 정보가 저장된다.")
         void request_with_different_user_id() throws InterruptedException {
             // given
+            for (int i = 0; i < queueCapacity; i++) {
+                int idx = i;
+                Member findMember = MemberRepository.getInstance().findById(userId+idx);
+                if(findMember != null) {
+                    MemberRepository.getInstance().delete(findMember);
+                }
+            }
+
             MemberRepository user = MemberRepository.getInstance();
             ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(queueCapacity));
             CountDownLatch countDownLatch = new CountDownLatch(queueCapacity);
@@ -104,16 +112,10 @@ class MemberTest {
 
             countDownLatch.await();
 
-            for (int i = 0; i < queueCapacity; i++) {
-                int idx = i;
-                Member findMember = MemberRepository.getInstance().findById(userId+idx);
-                user.delete(findMember);
-            }
-
             // then
-            assertEquals(exceptionCount.get(), 0);
-            assertEquals(otherExceptionCount.get(), 0);
-            assertEquals(successCount.get(), queueCapacity);
+            assertEquals(0,exceptionCount.get());
+            assertEquals(0,otherExceptionCount.get());
+            assertEquals(queueCapacity,successCount.get());
         }
     }
 }
