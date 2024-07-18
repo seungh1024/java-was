@@ -90,7 +90,8 @@ public class ConnectionHandler {
                     } else { // 정적 요청 처리애
                         if (Objects.equals(httpRequest.method(), HttpMethod.GET)) {
                             var body = StaticResourceHandler.getInstance().getStaticResource(httpRequest);
-                            return HttpResponse.getHtmlResponse(HttpStatus.OK, httpRequest.fileExtension(), body);
+                            return HttpResponse.getHtmlResponse(HttpStatus.OK, httpRequest
+                                    .fileExtension(), body);
                         } else if (!Objects.equals(httpRequest.method(),
                             HttpMethod.GET)) { // throw method not allowed error
                             throw ClientErrorCode.METHOD_NOT_ALLOWED.exception();

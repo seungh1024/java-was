@@ -56,6 +56,7 @@ public class HttpRequestParser {
         }
 
         String htmlString = outputStream.toString();
+        System.out.println("htmlString = "+htmlString);
 
 
         return getHttpRequest(htmlString);

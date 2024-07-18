@@ -11,7 +11,8 @@ public enum ClientErrorCode {
     USERID_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 아이디입니다."),
     PARAMETER_FORMAT_EXCEPTION(HttpStatus.BAD_REQUEST, "입력 데이터 형식이 일치하지 않습니다. 입력값을 다시 확인해 주세요."),
     UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스입니다."),
-    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다.")
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다."),
+    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "입력 정보를 확인해 주세요")
     ;
 
     private HttpStatus httpStatus;

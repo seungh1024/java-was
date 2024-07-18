@@ -309,6 +309,9 @@ public class CommandManager {
 		var userData = resources.split(QUERY_PARAMETER_SEPARATOR);
 		for (String keyValue : userData) {
 			var data = keyValue.split(EQUAL_SEPARATOR);
+			if (data.length == 1) {
+				throw ClientErrorCode.INVALID_PARAMETER.exception();
+			}
 			try {
 				map.put(data[0], URLDecoder.decode(data[1], "UTF-8"));
 			} catch (UnsupportedEncodingException exception) {
