@@ -1,6 +1,6 @@
 package codesquad.util;
 
-public class StringSeparator {
+public class StringUtils {
     public static final String CONTENT_LENGTH = "CONTENT-LENGTH";
     public static final String LF = "\n";
     public static final String SPACE_SEPARATOR = " ";
@@ -11,4 +11,6 @@ public class StringSeparator {
     public static final String CR = "\r";
     public static final String QUERY_PARAMETER_SEPARATOR = "&";
     public static final String SEMICOLON_SEPARATOR = ";";
+    public static final String BOUNDARY = "boundary=";
+    public static final String SESSIONKEY = "sessionKey";
 }

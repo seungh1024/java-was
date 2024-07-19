@@ -16,7 +16,7 @@
       </header>
       <div class="page">
         <h2 class="page-title">게시글 작성</h2>
-        <form action="/post/create" class="form" method="post" >
+        <form action="/post/create" class="form" method="post" enctype="multipart/form-data">
           <div class="textfield textfield_size_s">
             <p class="title_textfield">제목</p>
             <input
@@ -34,7 +34,6 @@
                     autocomplete="username"
                     name="file"
                     type="file"
-                    formenctype="multipart/form-data"
             />
           </div>
           <div class="textfield textfield_size_m">

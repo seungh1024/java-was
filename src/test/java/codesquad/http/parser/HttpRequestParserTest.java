@@ -1,6 +1,8 @@
 package codesquad.http.parser;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
@@ -33,7 +35,7 @@ class HttpRequestParserTest {
 			var httpRequestParser = new HttpRequestParser(socket);
 
 			// when
-			var httpRequest = httpRequestParser.getHttpRequest(parsingData);
+			var httpRequest = httpRequestParser.getHttpRequest(parsingData,0,null,0,null);
 
 			// then
 			assertEquals("HTTP/1.1",httpRequest.httpVersion());

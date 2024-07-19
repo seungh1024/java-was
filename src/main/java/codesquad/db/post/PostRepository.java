@@ -158,7 +158,6 @@ public class PostRepository {
             for (Post post : postList) {
                 ps = con.prepareStatement(userSql);
                 ps.setLong(1,post.getUserId());
-                System.out.println(post);
                 rs = ps.executeQuery();
 
                 if (rs.next()) {
@@ -171,7 +170,6 @@ public class PostRepository {
                 }
             }
 
-            System.out.println(postAndMember);
 
             if (postAndMember.size() == 0) {
                 postAndMember = null;

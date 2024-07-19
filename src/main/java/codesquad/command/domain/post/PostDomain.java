@@ -37,12 +37,13 @@ public class PostDomain {
 
     @PreHandle(target = AuthHandler.class)
     @PostMapping(httpStatus = HttpStatus.OK, path = "/post/create")
-    public String createPost(@RequestParam(name = "title") String postTitle, @RequestParam(name = "content") String postContent, HttpClientRequest request) {
+    public String createPost(HttpClientRequest request) {
         log.info("[POST] /create/post 호출");
 
         var userInfo = request.getUserInfo();
-        var post = new Post(postTitle, postContent, userInfo.id());
-        PostRepository.getInstance().save(post);
+        PostCreator.getInstance().save(request);
+
+
 
         return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", userInfo);
     }

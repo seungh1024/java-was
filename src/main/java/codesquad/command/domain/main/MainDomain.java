@@ -27,19 +27,12 @@ public class MainDomain {
     @GetMapping(httpStatus = HttpStatus.OK, path = "/")
     public String getMainPage(HttpClientRequest request) {
         log.info("[GET] / 호출");
-
-        return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", null);
+        return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", request.getUserInfo());
     }
 
     @GetMapping(httpStatus = HttpStatus.OK, path = "/main")
     public String getLoginMainPage(HttpClientRequest request) {
         log.info("[GET] /main 호출");
-        var sessionKey = request.getCookie("sessionKey");
-
-        SessionUserInfo sessionUserInfo = null;
-        if (!Objects.isNull(sessionKey)) {
-            sessionUserInfo = Session.getInstance().getSession(sessionKey.value());
-        }
-        return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html",sessionUserInfo);
+        return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html",request.getUserInfo());
     }
 }

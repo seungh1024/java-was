@@ -8,7 +8,7 @@ import codesquad.command.domainResponse.DomainResponse;
 import codesquad.http.HttpStatus;
 import codesquad.util.FileExtension;
 
-import static codesquad.util.StringSeparator.*;
+import static codesquad.util.StringUtils.*;
 
 public record DynamicHandleResult(
 	HttpStatus httpStatus,

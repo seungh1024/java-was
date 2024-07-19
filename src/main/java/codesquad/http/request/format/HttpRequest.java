@@ -1,5 +1,6 @@
 package codesquad.http.request.format;
 
+import java.io.InputStream;
 import java.util.Map;
 
 import codesquad.session.Cookie;
@@ -12,7 +13,9 @@ public record HttpRequest(
     String httpVersion,
     Map<String, String> headers,
 	Map<String, Cookie> cookie,
-    String body
-
+    String body,
+	byte[] buffer,
+	int bufferIndex,
+	InputStream inputStream
 ) {
 }

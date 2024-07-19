@@ -7,12 +7,11 @@ import codesquad.http.request.dynamichandler.DynamicHandleResult;
 import codesquad.util.FileExtension;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static codesquad.util.StringSeparator.*;
+import static codesquad.util.StringUtils.*;
 
 public record HttpResponse(
     HttpStatus httpStatus,
@@ -55,7 +54,7 @@ public record HttpResponse(
                 "<body>" +
                 "<h1>" + statusCode + " " + errorName + "</h1>" +
                 "<p>" + errorMessage + "</p>\n" +
-                "<a class=\"btn btn_contained btn_size_s\" href=\"/\">메인으로</a>\n"+
+                "<a class=\"btn btn_contained btn_size_s\" href=\"/main\">메인으로</a>\n"+
                 "</body>" +
                 "</html>";
         byte[] byteMessage = htmlMessage.getBytes();

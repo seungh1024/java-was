@@ -12,7 +12,9 @@ public enum ClientErrorCode {
     PARAMETER_FORMAT_EXCEPTION(HttpStatus.BAD_REQUEST, "입력 데이터 형식이 일치하지 않습니다. 입력값을 다시 확인해 주세요."),
     UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요한 서비스입니다."),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 일치하지 않습니다."),
-    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "입력 정보를 확인해 주세요")
+    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "입력 정보를 확인해 주세요"),
+    INVALID_MULTIPART_FORMAT(HttpStatus.BAD_REQUEST,"멀티파트 형식을 준수해주세요."),
+    TOO_MUCH_DATA(HttpStatus.BAD_REQUEST, "데이터가 너무 많습니다. 이미지와 텍스트 포함 30MB 이하의 데이터를 보내주세요")
     ;
 
     private HttpStatus httpStatus;

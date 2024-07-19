@@ -36,6 +36,7 @@ public class Session {
             throw ServerErrorCode.CANNOT_CREATE_SESSION.exception();
         }
 
+
         return sessionKey;
     }
 

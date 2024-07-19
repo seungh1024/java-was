@@ -3,7 +3,11 @@ package codesquad.command.interceptor;
 import codesquad.http.request.format.HttpRequest;
 import codesquad.session.Cookie;
 import codesquad.session.Session;
+import codesquad.util.StringUtils;
+
 import java.util.Objects;
+
+import static codesquad.util.StringUtils.SESSIONKEY;
 
 public class AuthHandler implements PreHandler{
     private static final AuthHandler authHandler = new AuthHandler();
@@ -15,7 +19,7 @@ public class AuthHandler implements PreHandler{
     @Override
     public boolean handle(HttpRequest httpRequest) {
         var cookieInfo = httpRequest.cookie();
-        Cookie cookie = cookieInfo.get("sessionKey");
+        Cookie cookie = cookieInfo.get(SESSIONKEY);
         boolean result = true;
         if (!Objects.isNull(cookie)) {
             var sessionUserInfo = Session.getInstance().getSession(cookie.value());

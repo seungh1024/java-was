@@ -24,7 +24,7 @@ public class ConnectionHandler {
     private static final Logger log = LoggerFactory.getLogger(ConnectionHandler.class);
     private static ConnectionHandler connectionThreadPool;
 
-    private ThreadPoolExecutor threadPoolExecutor;
+    private final ThreadPoolExecutor threadPoolExecutor;
     
     private int corePoolSize;
     private int maxPoolSize;
@@ -82,9 +82,15 @@ public class ConnectionHandler {
                 HttpRequest httpRequest = (HttpRequest)handleResult;
 
                 if (!Objects.isNull(httpRequest) && Objects.isNull(throwable)) {
-                    if (Objects.equals(httpRequest.fileExtension(), FileExtension.DYNAMIC)) { // 동적 요청 처리
-                        DomainResponse domainResponse = CommandManager.getInstance().execute(httpRequest);
-                        DynamicHandleResult dynamicHandleResult = DynamicHandleResult.of(domainResponse);
+                    if(Objects.equals(httpRequest.fileExtension(),FileExtension.MULTIPART)){
+                        var domainResponse = CommandManager.getInstance().execute(httpRequest);
+                        var dynamicHandleResult = DynamicHandleResult.of(domainResponse);
+
+                        return HttpResponse.getHtmlResponse(dynamicHandleResult);
+                    }
+                    else if (Objects.equals(httpRequest.fileExtension(), FileExtension.DYNAMIC)) { // 동적 요청 처리
+                        var domainResponse = CommandManager.getInstance().execute(httpRequest);
+                        var dynamicHandleResult = DynamicHandleResult.of(domainResponse);
 
                         return HttpResponse.getHtmlResponse(dynamicHandleResult);
                     } else { // 정적 요청 처리애
