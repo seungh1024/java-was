@@ -38,7 +38,7 @@ public class MemberRepository {
 
 		try {
 			con = getConnection();
-			ps = con.prepareStatement(sql);
+			ps = con.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
 			ps.setString(1, member.getMemberId());
 			ps.setString(2, member.getPassword());
 			ps.setString(3, member.getName());

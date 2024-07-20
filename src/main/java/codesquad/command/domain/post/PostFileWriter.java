@@ -28,8 +28,8 @@ public class PostFileWriter {
         this.keepAliveTime = 10;
         this.queueCapacity = 100;
 
-        threadPoolExecutor = new ExecutorService[10];
-        for (int i = 0; i < 10; i++) {
+        threadPoolExecutor = new ExecutorService[100];
+        for (int i = 0; i < 100; i++) {
             threadPoolExecutor[i] = Executors.newSingleThreadExecutor();
         }
     }
@@ -39,7 +39,7 @@ public class PostFileWriter {
     }
 
     public void writeBuffer(FileOutputStream fos, byte[] buffer, int offset, int length, AtomicInteger ai){
-        var hashCode = fos.hashCode()%10;
+        var hashCode = fos.hashCode()%100;
 
         threadPoolExecutor[hashCode].execute(()->{
             try {
@@ -56,5 +56,16 @@ public class PostFileWriter {
             }
         });
 
+    }
+
+    public void writeBlockingBuffer(FileOutputStream fos, byte[] buffer, int offset, int length){
+        try {
+            fos.write(buffer,offset,length);
+            fos.flush();
+
+        } catch (IOException exception) {
+            exception.printStackTrace();
+            throw new RuntimeException(exception);
+        }
     }
 }

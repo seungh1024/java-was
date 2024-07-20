@@ -10,11 +10,20 @@ import codesquad.http.request.format.HttpMethod;
 import codesquad.http.request.format.HttpRequest;
 import codesquad.session.SessionUserInfo;
 import codesquad.util.FileExtension;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.Socket;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,19 +38,52 @@ class PostDomainTest {
     Member member = null;
     HttpClientRequest request = null;
 
+    File file;
+    File outFile;
+    FileInputStream fis;
+    FileOutputStream fos;
+
     @BeforeEach
-    void setUp() {
+    void setUp() throws IOException {
         member = new Member("loginTest", "password", "name", "email");
         Member findMember = MemberRepository.getInstance().findById(member.getMemberId());
         if (findMember != null) {
             MemberRepository.getInstance().delete(findMember);
         }
         member = MemberRepository.getInstance().save(member);
+        file = new File("test.png");
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+        fis = new FileInputStream(file);
+
+        outFile = new File("testOut.png");
+        if (!outFile.exists()) {
+            outFile.createNewFile();
+        }
+        fos = new FileOutputStream(outFile);
         request = new HttpClientRequest(
                 new HttpRequest(HttpMethod.POST, "testUri", FileExtension.HTML, "http 1.1", Map.of(),
-                        Map.of(), "body"));
+                        Map.of(), "body",null,0,fis,fos));
         var userInfo = new SessionUserInfo(member.getId(), member.getMemberId(), member.getName());
         request.setUserInfo(userInfo);
+    }
+
+    @AfterEach
+    void shutDown() throws IOException {
+        if (file.exists()) {
+            file.delete();
+        }
+        if (outFile.exists()) {
+            outFile.delete();
+        }
+
+        if (fis != null) {
+            fis.close();
+        }
+        if (fos != null) {
+            fos.close();
+        }
     }
     @Nested
     @DisplayName("게시글 페이지 요청 테스트")
@@ -71,7 +113,7 @@ class PostDomainTest {
             var postContent = "testContent";
 
             // when
-            String post = PostDomain.getInstance().createPost(postTitle, postContent, request);
+            String post = PostDomain.getInstance().createPost(request);
 
             // then
             String htmlFile = DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", request.getUserInfo());
@@ -86,8 +128,9 @@ class PostDomainTest {
             var postContent = "testContent";
             Post post = new Post(postTitle, postContent, member.getId());
             Post savePost = PostRepository.getInstance().save(post);
-            var findMemeber = MemberRepository.getInstance().findByPk(post.getUserId());
+            var findMemeber = MemberRepository.getInstance().findByPk(savePost.getUserId());
 
+            System.out.println(savePost);
             // when
             String findPost = PostDomain.getInstance().getPost(savePost.getId(), request);
 

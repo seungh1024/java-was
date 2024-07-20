@@ -29,14 +29,11 @@ public class PostCreator {
         var inputStream = request.getInputStream();
         var boundary = request.getBoundary();
 
-        if (boundary == null) {
-            throw ClientErrorCode.INVALID_MULTIPART_FORMAT.exception();
-        }
 
         var userInfo = request.getUserInfo();
         var directory = new File(rootPath + File.separator + userInfo.id());
         log.info("[Directory Path] {}", directory.getPath());
-        if(!directory.exists()) {
+        if(!directory.exists() && Objects.nonNull(boundary)) {
             boolean created = directory.mkdirs();
             if (!created) {
                 throw ServerErrorCode.CANNOT_CREATE_POST.exception();

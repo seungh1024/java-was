@@ -113,8 +113,6 @@ public class HttpRequestParser {
         var contentLength = headers.get("Content-Length");
 
         var body = "";
-        // multipart 요청 객체 만들기
-
 
         if (Objects.nonNull(contentType) && contentType.contains(BOUNDARY)) {
             var split = contentType.split(BOUNDARY);
