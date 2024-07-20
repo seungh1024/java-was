@@ -142,16 +142,12 @@ public class CommandManager {
 		} else {
 			var cookieInfo = httpRequest.cookie();
 			Cookie cookie = cookieInfo.get(SESSIONKEY);
-			System.out.println("cookie!!! "+cookie);
 			if (Objects.nonNull(cookie)) {
-				System.out.println(cookie.value());
 				SessionUserInfo userInfo = Session.getInstance().getSession(cookie.value());
 				httpClientRequest.setUserInfo(userInfo);
-				System.out.println("tqtq = "+httpClientRequest.getUserInfo());
 			}
 		}
 		log.info("[Execute Method] : , {}",method);
-		System.out.println("httpclientrequest = "+httpClientRequest);
 
 		try {
 			var className = method.getDeclaringClass().getName();

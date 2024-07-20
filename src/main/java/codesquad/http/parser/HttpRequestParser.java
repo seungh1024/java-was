@@ -119,7 +119,6 @@ public class HttpRequestParser {
             headers.put("multipart", "--"+split[1]);
             fileExtension = FileExtension.MULTIPART;
         } else if(Objects.nonNull(contentLength)){
-            System.out.println("call get body");
             body = getBody(Integer.parseInt(contentLength), inputSize, buffer, bufferIndex,inputStream);
         }
 

@@ -41,7 +41,6 @@ public class Session {
     }
 
     public SessionUserInfo getSession(String cookie) {
-        System.out.println(sessionInfo);
         return sessionInfo.get(cookie);
     }
 

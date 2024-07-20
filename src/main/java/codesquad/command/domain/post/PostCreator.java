@@ -10,6 +10,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PostCreator {
     private static final Logger log = LoggerFactory.getLogger(PostCreator.class);
@@ -23,15 +24,14 @@ public class PostCreator {
         return postCreator;
     }
 
-    public void save(HttpClientRequest request) {
+    public Map<String,String> save(HttpClientRequest request) {
         var readSize = 0;
         var inputSize = 0;
         var buffer = new byte[BUFFER_SIZE];
         var inputStream = request.getInputStream();
-        var key = request.getBoundary();
-        System.out.println(key);
-        var endKey = key+"--";
-        if (key == null) {
+        var boundary = request.getBoundary();
+
+        if (boundary == null) {
             throw ClientErrorCode.INVALID_MULTIPART_FORMAT.exception();
         }
 
@@ -47,99 +47,134 @@ public class PostCreator {
 
 
 
-        StringBuilder sb = new StringBuilder();
-        int enterCheck = 0;
-        int bufferIndex = 0;
-        int endBufferIndex = 0;
+        var lineBuffer = new ByteArrayOutputStream();
         var totalContent = new HashMap<String, String>(); // 전체 컨텐츠 저장
         var content = new HashMap<String, String>(); // 컨텐츠 저장. 이름, 값, body, 파일 경로 등
-        FileOutputStream fos = null;
 
         try {
             boolean isFile = false;
-            String contentKey = null;
-            var body = new StringBuilder();
-
             var fileBuffer = new byte[BUFFER_SIZE];
             var fileIndex = 0;
             boolean isBody = false;
-            boolean fileBody = false;
+
+            File file = null;
+            FileOutputStream fos = null;
+            var bos = new ByteArrayOutputStream();
+            var fileBos = new ByteArrayOutputStream();
 
             while ((readSize = inputStream.read(buffer)) != -1) {
                 inputSize += readSize;
                 if (inputSize > MAX_READ_SIZE) {
+                    if (fos != null) {
+                        fos.close();
+                        if (file.exists()) {
+                            file.delete();
+                        }
+                    }
                     throw ClientErrorCode.TOO_MUCH_DATA.exception();
                 }
 
                 for (int i = 0; i < readSize; i++) {
-                    if(fileBody){
-                        if(fileIndex == BUFFER_SIZE) {
-                            PostFileWriter.getInstance().writeBuffer(fos,buffer, 0, BUFFER_SIZE);
-                            fileIndex = 0;
-//                            fileBody = false;
+
+
+                        if (isFile) {
+                            fileBos.write(buffer[i]);
+                            if (fileBos.size() == BUFFER_SIZE) {
+                                PostFileWriter.getInstance().writeBuffer(fos, fileBos.toByteArray(), 0, BUFFER_SIZE);
+                                fileBos.reset();
+                            }
+                        } else if(isBody) {
+                            bos.write(buffer[i]);
                         }
-                        fileBuffer[fileIndex++] = buffer[i];
-                    }
 
 
 
-                    if (buffer[i] == 13) {
-                        var line = sb.toString();
-                        log.debug("[line] {}", line);
-                        if (sb.length() == 0) {
-                            log.debug("[Body Line Start]");
-                            isBody = true;
+                    if (buffer[i] == 10) {
+                        var line = lineBuffer.toString();
+
+                        if (lineBuffer.size()==0 && !isBody &&!isFile) {
+                            if (content.get("type") != null) {
+                                isFile = true;
+                                isBody = false;
+                            } else {
+                                isBody = true;
+                                isFile = false;
+                            }
                             continue;
                         }
 
-
-                        if (Objects.equals(line, key)) {
-                            log.debug("[Content Line] {}", line);
-                            if (isBody) {
-                                log.debug("[Body Info] {}",body);
-                                if (body.toString().contains("\r")) {
-                                    System.out.println("??");
+                        if (line.contains(boundary)) {
+                            if (isFile) {
+                                if (fileBos.size() - boundary.length() > 0) {
+                                    PostFileWriter.getInstance()
+                                        .writeBuffer(fos, fileBos.toByteArray(), 0, fileBos.size() - boundary.length());
+                                    fileBos.reset();
                                 }
+
+                                var fileName = content.get("filename");
+                                var filePath =  content.get("filePath");
+                                var fileType = content.get("type");
+                                totalContent.put("fileName", fileName);
+                                totalContent.put("filePath", filePath);
+                                totalContent.put("type", fileType);
+                            } else if (isBody) {
+                                var bs = bos.toString();
+                                bs = bs.replaceAll("\r", "");
+                                var bodyInfos = bs.split("\n\n" + boundary);
+                                var body = bodyInfos[0];
+                                log.debug("[Body Info] {}",body);
+                                var contentName = content.get("name");
+                                log.debug("[Content Name] content = {}, body = {}",contentName,body);
+                                totalContent.put(contentName,body);
                             }
                             isBody = false;
-                        } else if (Objects.equals(line, endKey)) {
-                            log.debug("[Content End Line] {}", line);
-                            isBody = false;
-                        } else if (line.contains("Content-Desposition: ")) {
-                            log.debug("[Content Desposition] {}", line);
+                            isFile = false;
+                            bos.reset();
+                            content.clear();
+
+                            log.debug("[Line End] total content = {}",totalContent);
+                        } else if (line.contains("Content-Disposition: ")) {
+                            log.debug("[Content Disposition] {}",line);
+                            line = line.replace("ContentDisposition: ", "");
+                            var dispositions = line.split("; ");
+                            for (var disposition : dispositions) {
+                                if (disposition.contains("=")) {
+                                    var dispositionKeyValue = disposition.split("=");
+                                    var key = dispositionKeyValue[0];
+                                    var value = dispositionKeyValue[1].replaceAll("\"","");
+                                    content.put(key, value);
+                                }
+                            }
+
+                            var fileName = content.get("filename");
+                            if (fileName != null) {
+                                var extension = fileName.substring(fileName.lastIndexOf("."));
+                                content.put("extension", extension);
+                            }
+
+                            log.debug("[Content Info] {}",content);
                         } else if (line.contains("Content-Type: ")) {
                             log.debug("[Content Type] {}", line);
-                            // content type 저장
                             line = line.replace("Content-Type: ", "");
                             content.put("type", line);
+                            // var extension = line.substring(line.lastIndexOf("/")).replace("/",".");
+                            // content.put("extension", extension);
+                            // isFile = true;
+                            isBody = false;
 
-                            // 확장자 저장
-                            var extension = line.substring(line.lastIndexOf("/")).replace("/", ".");
-                            content.put("extension", extension);
-
-                            fileBody = true;
-                            log.debug("[Content Type Save] content = {}, fileBody = {}",content,fileBody);
-
-                            // File open
-                            var file = new File(rootPath+File.separator+userInfo.id()+File.separator+UUID.randomUUID()+extension);
+                            file = new File(
+                                rootPath + File.separator + userInfo.id() + File.separator + UUID.randomUUID()
+                                    + content.get("extension"));
+                            content.put("filePath", file.getPath());
                             fos = new FileOutputStream(file);
+                        } else {
+                            bos.write(buffer[i]);
                         }
-
-                        sb = new StringBuilder();
-                    } else if (buffer[i] != 10) {
-                        sb.append((char) buffer[i]);
+                        lineBuffer.reset();
+                    } else if (buffer[i] != 13) {
+                        lineBuffer.write(buffer[i]);
                     }
-
-
-                    if (isBody && !fileBody) {
-                        body.append((char) buffer[i]);
-                    }
-
                 }
-
-
-
-
                 if (readSize < BUFFER_SIZE) {
                     break;
                 }
@@ -155,6 +190,8 @@ public class PostCreator {
             log.error("[Socket Error] : Post Multipart 데이터를 읽어오던 중 에러 발생");
             throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
         }
+
+        return totalContent;
     }
 
 }

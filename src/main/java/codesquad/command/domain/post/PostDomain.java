@@ -1,5 +1,7 @@
 package codesquad.command.domain.post;
 
+import java.util.Map;
+
 import codesquad.command.annotation.custom.RequestParam;
 import codesquad.command.annotation.method.Command;
 import codesquad.command.annotation.method.GetMapping;
@@ -41,9 +43,14 @@ public class PostDomain {
         log.info("[POST] /create/post 호출");
 
         var userInfo = request.getUserInfo();
-        PostCreator.getInstance().save(request);
-
-
+        var multipartInfo = PostCreator.getInstance().save(request);
+        var userId = userInfo.id();
+        var title = multipartInfo.get("title");
+        var content = multipartInfo.get("content");
+        var fileName = multipartInfo.get("fileName");
+        var filePath = multipartInfo.get("filePath");
+        var post = new Post(title,content,userId,fileName,filePath);
+        PostRepository.getInstance().save(post);
 
         return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", userInfo);
     }

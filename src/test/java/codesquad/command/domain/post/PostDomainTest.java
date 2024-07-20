@@ -40,7 +40,6 @@ class PostDomainTest {
         request = new HttpClientRequest(
                 new HttpRequest(HttpMethod.POST, "testUri", FileExtension.HTML, "http 1.1", Map.of(),
                         Map.of(), "body"));
-        System.out.println("init member = "+member);
         var userInfo = new SessionUserInfo(member.getId(), member.getMemberId(), member.getName());
         request.setUserInfo(userInfo);
     }
@@ -90,7 +89,6 @@ class PostDomainTest {
             var findMemeber = MemberRepository.getInstance().findByPk(post.getUserId());
 
             // when
-            System.out.println(request.getUserInfo());
             String findPost = PostDomain.getInstance().getPost(savePost.getId(), request);
 
             // then

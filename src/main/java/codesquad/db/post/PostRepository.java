@@ -24,8 +24,8 @@ public class PostRepository {
         log.info("[Post Save], post = {}", post);
 
         var sql = """
-            insert into post(post_title,post_content,user_id)
-            values(?,?,?)
+            insert into post(post_title,post_content,user_id, file_name, file_path)
+            values(?,?,?,?,?)
             """;
 
         Connection con = null;
@@ -38,6 +38,8 @@ public class PostRepository {
             ps.setString(1,post.getTitle());
             ps.setString(2,post.getContent());
             ps.setLong(3,post.getUserId());
+            ps.setString(4, post.getFileName());
+            ps.setString(5,post.getFilePath());
             ps.executeUpdate();
 
             rs = ps.getGeneratedKeys();

@@ -2,11 +2,15 @@ package codesquad.db.post;
 
 import java.util.Objects;
 
+import codesquad.exception.client.ClientErrorCode;
+
 public class Post {
     private long id;
     private String title;
     private String content;
     private long userId;
+    private String fileName;
+    private String filePath;
 
     public Post(){}
 
@@ -14,6 +18,36 @@ public class Post {
         this.title = title;
         this.content = content;
         this.userId = userId;
+    }
+
+    public Post(String title, String content, long userId, String fileName, String filePath) {
+        this.title = title;
+        this.content = content;
+        this.userId = userId;
+        this.fileName = fileName;
+        this.filePath = filePath;
+    }
+
+    public void isValid() {
+        if (Objects.isNull(title) || Objects.isNull(content) || Objects.isNull(userId) || fileName.length() > 100 || filePath.length() > 100 || title.length() > 100) {
+            throw ClientErrorCode.INVALID_ARGUMENT.exception();
+        }
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public String getFilePath() {
+        return filePath;
     }
 
     public long getId() {
