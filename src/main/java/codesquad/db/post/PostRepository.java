@@ -22,6 +22,9 @@ public class PostRepository {
 
     public Post save(Post post) {
         log.info("[Post Save], post = {}", post);
+        post.isValid();
+        post.characterChange();
+
 
         var sql = """
             insert into post(post_title,post_content,user_id, file_name, file_path)

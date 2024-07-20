@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import codesquad.command.domain.post.PostFileWriter;
+import codesquad.db.XSSUtil;
 
 public class FileIoTest {
 
@@ -131,4 +132,5 @@ public class FileIoTest {
 			foss2[i].close();
 		}
 	}
+
 }

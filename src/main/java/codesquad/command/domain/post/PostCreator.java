@@ -30,6 +30,7 @@ public class PostCreator {
         var boundary = request.getBoundary();
 
 
+
         var userInfo = request.getUserInfo();
         var directory = new File(rootPath + File.separator + userInfo.id());
         log.info("[Directory Path] {}", directory.getPath());
@@ -143,7 +144,7 @@ public class PostCreator {
                             }
 
                             var fileName = content.get("filename");
-                            if (fileName != null) {
+                            if (fileName != null && !fileName.isEmpty()) {
                                 var extension = fileName.substring(fileName.lastIndexOf("."));
                                 content.put("extension", extension);
                             }

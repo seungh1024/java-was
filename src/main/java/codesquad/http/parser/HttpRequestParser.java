@@ -39,41 +39,40 @@ public class HttpRequestParser {
         int enterCheck = 0;
         int bufferIndex = 0;
         int endBufferIndex = 0;
+
         try {
             inputStream = clientSocket.getInputStream();
             outputStream = clientSocket.getOutputStream();
+
+            int read = 0;
+
+            var bos = new ByteArrayOutputStream();
             // 소켓 버퍼 데이터를 빨리 가져와야 하니 우선 outputStream으로 복사한다.
-            while ((readSize = inputStream.read(buffer, 0, bufferSize)) != -1) {
+            while ((read = inputStream.read()) != -1) {
                 inputSize += readSize;
+                bos.write(read);
 
                 boolean flag = false;
-                for(int i = 0; i < readSize; i++) {
-                    if (buffer[i] == 13) {
-                        enterCheck++;
-                        if (enterCheck == 2) {
-                            inputSize += i;
-                            for (int j = i + 1; j < readSize; j++) {
-                                if (buffer[j] != 10 && buffer[j] != 13) {
-                                    bufferIndex = j;
-                                    break;
-                                }
-                            }
-                            sb.append(new String(buffer, 0, endBufferIndex+1));
-                            flag = true;
-                            break;
-                        }
-                    } else if (buffer[i] != 10 && buffer[i] != 13) {
-                        enterCheck = 0;
-                        endBufferIndex = i;
+
+                if (read == 13) {
+                    var line = bos.toString();
+                    sb.append(line);
+                    bos.reset();
+                    enterCheck++;
+                    if (enterCheck == 2) {
+                        break;
                     }
+                } else if (read != 10 && read != 13) {
+                    enterCheck = 0;
                 }
+
                 if(flag){
                     break;
                 }
-                sb.append(new String(buffer, 0, readSize));
-                if (readSize < bufferSize) {
-                    break;
-                }
+                // sb.append(new String(buffer, 0, readSize));
+                // if (readSize < bufferSize) {
+                //     break;
+                // }
             }
         } catch (IOException exception) {
             log.error("[Socket Error] : 데이터를 읽어오던 중 에러 발생");
@@ -83,7 +82,6 @@ public class HttpRequestParser {
         }
 
         String headerString = sb.toString();
-
 
         return getHttpRequest(headerString, inputSize, buffer, bufferIndex, inputStream, outputStream);
     }
@@ -119,9 +117,17 @@ public class HttpRequestParser {
             headers.put("multipart", "--"+split[1]);
             fileExtension = FileExtension.MULTIPART;
         } else if(Objects.nonNull(contentLength)){
+            log.debug("[Not Multipart Body]");
             body = getBody(Integer.parseInt(contentLength), inputSize, buffer, bufferIndex,inputStream);
         }
 
+        if (Objects.equals(fileExtension, FileExtension.MULTIPART)) {
+            try {
+                int read = inputStream.read();
+            } catch (Exception e) {
+
+            }
+        }
 
         if (uri.contains("?")) {
             var uriSplit = uri.split("\\?");
@@ -147,43 +153,32 @@ public class HttpRequestParser {
     public String getBody(int contentLength, int inputSize, byte[] buffer, int bufferIndex, InputStream inputStream) {
         StringBuilder sb = new StringBuilder();
 
-        var firstBufferTargetIndex = 0;
-        for (int i = bufferIndex; i < bufferSize; i++) {
-            if (buffer[i] == 0) {
-                firstBufferTargetIndex = i-1;
-                break;
-            }
-        }
-
-        if (firstBufferTargetIndex > 0) {
-            sb.append(new String(buffer, bufferIndex, firstBufferTargetIndex-bufferIndex+1));
-            return sb.toString();
-        }
 
 
-        int readSize = 0;
+        int read = 0;
+        var bos = new ByteArrayOutputStream();
         try {
-            while ((readSize = inputStream.read(buffer, 0, bufferSize)) != -1) {
-                inputSize += readSize;
+            for(int i = 0; i <= contentLength; i++){
+                read = inputStream.read();
+                inputSize ++;
 
                 if (inputSize > maxInputSize) {
                     throw ClientErrorCode.URI_TOO_LONG.exception();
                 }
 
-                sb.append(new String(buffer, 0, readSize));
+                bos.write(read);
 
-
-                if(readSize < bufferSize || inputSize >= contentLength) {
-                    break;
-                }
             }
         } catch (IOException exception) {
             log.error("[BODY READ ERROR] {}", exception.getMessage());
             throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
         }
+        var body = bos.toString();
+        sb.append(body);
+        var result = sb.toString().replace("\n", "");
 
 
-        return sb.toString();
+        return result;
     }
 
     public int parsingHeader(String[] lines, Map<String, String> headers, Map<String, Cookie> cookies) {

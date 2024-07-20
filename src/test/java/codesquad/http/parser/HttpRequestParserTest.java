@@ -43,7 +43,6 @@ class HttpRequestParserTest {
 			// when
 			var httpRequest = httpRequestParser.getHttpRequest("GET"+parsingData,0,buffer,0,null,null);
 
-			System.out.println(httpRequest);
 			// then
 			assertEquals("HTTP/1.1",httpRequest.httpVersion());
 			assertEquals("",httpRequest.body());
@@ -73,7 +72,6 @@ class HttpRequestParserTest {
 			// when
 			var httpRequest = httpRequestParser.getHttpRequest("POST"+parsingData,0,buffer,0,null,null);
 
-			System.out.println(httpRequest);
 			// then
 			assertEquals("HTTP/1.1",httpRequest.httpVersion());
 			assertEquals("body",httpRequest.body());

@@ -130,7 +130,6 @@ class PostDomainTest {
             Post savePost = PostRepository.getInstance().save(post);
             var findMemeber = MemberRepository.getInstance().findByPk(savePost.getUserId());
 
-            System.out.println(savePost);
             // when
             String findPost = PostDomain.getInstance().getPost(savePost.getId(), request);
 

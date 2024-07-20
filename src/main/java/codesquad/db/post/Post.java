@@ -1,7 +1,10 @@
 package codesquad.db.post;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
+import codesquad.db.XSSUtil;
 import codesquad.exception.client.ClientErrorCode;
 
 public class Post {
@@ -26,6 +29,24 @@ public class Post {
         this.userId = userId;
         this.fileName = fileName;
         this.filePath = filePath;
+    }
+
+    public void characterChange() {
+        XSSUtil.list.stream()
+            .forEach(s -> {
+                if (title.contains(s)) {
+                    title =title.replaceAll(s,XSSUtil.map.get(s));
+                }
+                if (content.contains(s)) {
+                    content =content.replaceAll(s,XSSUtil.map.get(s));
+                }
+                if (fileName != null && fileName.contains(s)) {
+                    fileName =fileName.replaceAll(s,XSSUtil.map.get(s));
+                }
+                if (filePath != null && filePath.contains(s)) {
+                    filePath = filePath.replaceAll(s,XSSUtil.map.get(s));
+                }
+            });
     }
 
     public void isValid() {

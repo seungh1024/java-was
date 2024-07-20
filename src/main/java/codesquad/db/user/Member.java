@@ -2,6 +2,9 @@ package codesquad.db.user;
 
 import java.util.Objects;
 
+import codesquad.db.XSSUtil;
+import codesquad.exception.client.ClientErrorCode;
+
 public class Member {
 	private long id;
 	private String memberId;
@@ -16,6 +19,22 @@ public class Member {
 		this.password = password;
 		this.name = name;
 		this.email = email;
+	}
+
+	public void isValid() {
+		if (Objects.isNull(memberId) || Objects.isNull(password) || Objects.isNull(name) || Objects.isNull(email)) {
+			throw ClientErrorCode.INVALID_ARGUMENT.exception();
+		}
+		XSSUtil.list.stream()
+			.forEach(s -> {
+				if (memberId.contains(s) || name.contains(s) || email.contains(s)) {
+					throw ClientErrorCode.INVALID_ARGUMENT.exception();
+				}
+			});
+	}
+
+	public void characterChange() {
+
 	}
 
 	public long getId() {
