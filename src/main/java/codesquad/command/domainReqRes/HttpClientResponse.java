@@ -1,7 +1,5 @@
-package codesquad.command.domainResponse;
+package codesquad.command.domainReqRes;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class HttpClientResponse {

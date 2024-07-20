@@ -1,7 +1,6 @@
 package codesquad.webserver;
 
 import codesquad.command.CommandManager;
-import codesquad.command.domainResponse.DomainResponse;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.http.HttpStatus;
 import codesquad.http.request.dynamichandler.DynamicHandleResult;
@@ -19,6 +18,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ConnectionHandler {
     private static final Logger log = LoggerFactory.getLogger(ConnectionHandler.class);
@@ -68,6 +68,7 @@ public class ConnectionHandler {
         var clientTask = new HttpRequestParser(clientSocket);
 
 
+
         CompletableFuture.supplyAsync(() -> clientTask.parse(), threadPoolExecutor)
             .handle((parsingResult, throwable) -> { // parsing 결과 핸들링
                 var httpRequest = parsingResult;
@@ -114,7 +115,11 @@ public class ConnectionHandler {
                 HttpResponse response = applyResult;
 
                 if (!Objects.isNull(applyResult) && Objects.isNull(throwable)) { // 정상 응답 처리
-                    doResponse(clientSocket, response);
+                    if (response.headers().get("chunked") == null) {
+                        doResponse(clientSocket, response);
+                    } else {
+                        return;
+                    }
                 } else {
                     try {
                         Exception exception = (Exception)throwable.getCause();
@@ -131,11 +136,13 @@ public class ConnectionHandler {
 
                     if (!Objects.isNull(clientSocket) && !clientSocket.isClosed() && !clientSocket.getKeepAlive()) {
                         clientSocket.close();
+                        log.debug("[SOCKET] client socket closed");
                     }
                 } catch (IOException exception) {
                     log.error("[Socket Error] : Client Socket Already Closed");
                 }
 			});
+
 
     }
 

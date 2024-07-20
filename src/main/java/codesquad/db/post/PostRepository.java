@@ -81,6 +81,9 @@ public class PostRepository {
                 post.setTitle(rs.getString(2));
                 post.setContent(rs.getString(3));
                 post.setUserId(rs.getLong(4));
+                post.setFileName(rs.getString(5));
+                post.setFilePath(rs.getString(6));
+
 
                 return post;
             } else {

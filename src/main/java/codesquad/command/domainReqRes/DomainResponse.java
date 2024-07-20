@@ -1,4 +1,4 @@
-package codesquad.command.domainResponse;
+package codesquad.command.domainReqRes;
 
 import codesquad.http.HttpStatus;
 

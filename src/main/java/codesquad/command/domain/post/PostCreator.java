@@ -1,21 +1,19 @@
 package codesquad.command.domain.post;
 
-import codesquad.command.domainResponse.HttpClientRequest;
+import codesquad.command.domainReqRes.HttpClientRequest;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.exception.server.ServerErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PostCreator {
     private static final Logger log = LoggerFactory.getLogger(PostCreator.class);
     private static final int BUFFER_SIZE = 1024*4;
-    private static final int MAX_READ_SIZE = 31*1024*1024;
+    private static final int MAX_READ_SIZE = 100*1024*1024;
     private static final PostCreator postCreator = new PostCreator();
     private static final String rootPath = System.getProperty("user.home")+File.separator+"post";
     private PostCreator() {}
@@ -61,6 +59,7 @@ public class PostCreator {
             FileOutputStream fos = null;
             var bos = new ByteArrayOutputStream();
             var fileBos = new ByteArrayOutputStream();
+            var ai = new AtomicInteger(0);
 
             while ((readSize = inputStream.read(buffer)) != -1) {
                 inputSize += readSize;
@@ -80,7 +79,8 @@ public class PostCreator {
                         if (isFile) {
                             fileBos.write(buffer[i]);
                             if (fileBos.size() == BUFFER_SIZE) {
-                                PostFileWriter.getInstance().writeBuffer(fos, fileBos.toByteArray(), 0, BUFFER_SIZE);
+                                ai.getAndIncrement();
+                                PostFileWriter.getInstance().writeBuffer(fos, fileBos.toByteArray(), 0, BUFFER_SIZE,ai);
                                 fileBos.reset();
                             }
                         } else if(isBody) {
@@ -106,8 +106,9 @@ public class PostCreator {
                         if (line.contains(boundary)) {
                             if (isFile) {
                                 if (fileBos.size() - boundary.length() > 0) {
+                                    ai.getAndIncrement();
                                     PostFileWriter.getInstance()
-                                        .writeBuffer(fos, fileBos.toByteArray(), 0, fileBos.size() - boundary.length());
+                                        .writeBuffer(fos, fileBos.toByteArray(), 0, fileBos.size() - boundary.length(),ai);
                                     fileBos.reset();
                                 }
 
@@ -122,9 +123,7 @@ public class PostCreator {
                                 bs = bs.replaceAll("\r", "");
                                 var bodyInfos = bs.split("\n\n" + boundary);
                                 var body = bodyInfos[0];
-                                log.debug("[Body Info] {}",body);
                                 var contentName = content.get("name");
-                                log.debug("[Content Name] content = {}, body = {}",contentName,body);
                                 totalContent.put(contentName,body);
                             }
                             isBody = false;
@@ -180,9 +179,6 @@ public class PostCreator {
                 }
             }
 
-            if (fos != null) {
-                fos.close();
-            }
             log.debug("[Total Content]  {} ",totalContent);
 
 

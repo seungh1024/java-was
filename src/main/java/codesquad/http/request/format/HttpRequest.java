@@ -1,6 +1,7 @@
 package codesquad.http.request.format;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 import codesquad.session.Cookie;
@@ -16,6 +17,7 @@ public record HttpRequest(
     String body,
 	byte[] buffer,
 	int bufferIndex,
-	InputStream inputStream
+	InputStream inputStream,
+	OutputStream outputStream
 ) {
 }

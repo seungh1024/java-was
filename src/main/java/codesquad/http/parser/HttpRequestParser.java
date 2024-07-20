@@ -35,11 +35,13 @@ public class HttpRequestParser {
         StringBuilder sb = new StringBuilder();
 
         InputStream inputStream = null;
+        OutputStream outputStream = null;
         int enterCheck = 0;
         int bufferIndex = 0;
         int endBufferIndex = 0;
         try {
             inputStream = clientSocket.getInputStream();
+            outputStream = clientSocket.getOutputStream();
             // 소켓 버퍼 데이터를 빨리 가져와야 하니 우선 outputStream으로 복사한다.
             while ((readSize = inputStream.read(buffer, 0, bufferSize)) != -1) {
                 inputSize += readSize;
@@ -83,11 +85,11 @@ public class HttpRequestParser {
         String headerString = sb.toString();
 
 
-        return getHttpRequest(headerString, inputSize, buffer, bufferIndex, inputStream);
+        return getHttpRequest(headerString, inputSize, buffer, bufferIndex, inputStream, outputStream);
     }
 
 
-    public HttpRequest getHttpRequest(String headerString, int inputSize, byte[] buffer, int bufferIndex, InputStream inputStream) {
+    public HttpRequest getHttpRequest(String headerString, int inputSize, byte[] buffer, int bufferIndex, InputStream inputStream, OutputStream outputStream) {
         var lines = headerString.replaceAll(CR, EMPTY_STRING).split(LF);
 
         var firstLine = lines[0].split(SPACE_SEPARATOR);
@@ -110,7 +112,7 @@ public class HttpRequestParser {
         var contentType = headers.get("Content-Type");
         var contentLength = headers.get("Content-Length");
 
-        String body = "";
+        var body = "";
         // multipart 요청 객체 만들기
 
 
@@ -125,11 +127,14 @@ public class HttpRequestParser {
 
         if (uri.contains("?")) {
             var uriSplit = uri.split("\\?");
+            log.debug("[URI] {}",Arrays.toString(uriSplit));
             uri = uriSplit[0];
+            fileExtension = getFileExtension(uri);
             body = uriSplit[1];
         }
 
-        var httpRequest = new HttpRequest(method, uri, fileExtension, httpVersion, headers, cookies, body, buffer, bufferIndex, inputStream);
+        var httpRequest = new HttpRequest(method, uri, fileExtension, httpVersion, headers, cookies, body, buffer,
+            bufferIndex, inputStream, outputStream);
 
         return httpRequest;
     }

@@ -10,8 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import codesquad.command.domainResponse.HttpClientRequest;
-import codesquad.command.domainResponse.HttpClientResponse;
+import codesquad.command.domainReqRes.HttpClientRequest;
+import codesquad.command.domainReqRes.HttpClientResponse;
 import codesquad.db.user.Member;
 import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;

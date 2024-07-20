@@ -1,7 +1,7 @@
 package codesquad.command.domain.post;
 
 import codesquad.command.domain.DynamicResponseBody;
-import codesquad.command.domainResponse.HttpClientRequest;
+import codesquad.command.domainReqRes.HttpClientRequest;
 import codesquad.db.post.Post;
 import codesquad.db.post.PostRepository;
 import codesquad.db.user.Member;

@@ -85,22 +85,29 @@ public class Post {
     @Override
     public String toString() {
         return "Post{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", post='" + content + '\'' +
-                '}';
+            "id=" + id +
+            ", title='" + title + '\'' +
+            ", content='" + content + '\'' +
+            ", userId=" + userId +
+            ", fileName='" + fileName + '\'' +
+            ", filePath='" + filePath + '\'' +
+            '}';
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Post post1 = (Post) o;
-        return Objects.equals(title, post1.title) && Objects.equals(content, post1.content);
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Post post = (Post)o;
+        return getId() == post.getId() && getUserId() == post.getUserId() && Objects.equals(getTitle(),
+            post.getTitle()) && Objects.equals(getContent(), post.getContent()) && Objects.equals(
+            getFileName(), post.getFileName()) && Objects.equals(getFilePath(), post.getFilePath());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(title, content);
+        return Objects.hash(getId(), getTitle(), getContent(), getUserId(), getFileName(), getFilePath());
     }
 }

@@ -1,14 +1,13 @@
 package codesquad.command.domain.post;
 
-import java.util.Map;
-
 import codesquad.command.annotation.custom.RequestParam;
+import codesquad.command.annotation.file.Chunked;
 import codesquad.command.annotation.method.Command;
 import codesquad.command.annotation.method.GetMapping;
 import codesquad.command.annotation.method.PostMapping;
 import codesquad.command.annotation.preprocess.PreHandle;
 import codesquad.command.domain.DynamicResponseBody;
-import codesquad.command.domainResponse.HttpClientRequest;
+import codesquad.command.domainReqRes.HttpClientRequest;
 import codesquad.command.interceptor.AuthHandler;
 import codesquad.db.post.Post;
 import codesquad.db.post.PostRepository;
@@ -49,7 +48,7 @@ public class PostDomain {
         var content = multipartInfo.get("content");
         var fileName = multipartInfo.get("fileName");
         var filePath = multipartInfo.get("filePath");
-        var post = new Post(title,content,userId,fileName,filePath);
+        var post = new Post(title, content, userId, fileName, filePath);
         PostRepository.getInstance().save(post);
 
         return DynamicResponseBody.getInstance().getHtmlFile("/main/index.html", userInfo);
@@ -59,9 +58,18 @@ public class PostDomain {
     public String getPost(@RequestParam(name = "id") long postId, HttpClientRequest request) {
         log.info("[POST] /post 호출");
 
-        Post post = PostRepository.getInstance().findByPk(postId);
-        Member member = MemberRepository.getInstance().findByPk(post.getUserId());
+        var post = PostRepository.getInstance().findByPk(postId);
+        var member = MemberRepository.getInstance().findByPk(post.getUserId());
 
-        return DynamicResponseBody.getInstance().getPostHtml("/article/post.html", request.getUserInfo(), post,member);
+        return DynamicResponseBody.getInstance().getPostHtml("/article/post.html", request.getUserInfo(), post, member);
+    }
+
+    @Chunked
+    @GetMapping(httpStatus = HttpStatus.OK, path = "/post/image")
+    public void getPostImage(@RequestParam(name = "filePath") String filePath, HttpClientRequest request) {
+        log.info("[POST] /post/image 호출");
+
+        PostFileReader.getInstance().readFile(request.getOutputStream(), filePath);
+
     }
 }

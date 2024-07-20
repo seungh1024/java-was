@@ -13,6 +13,9 @@ import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DynamicResponseBody {
     private static final DynamicResponseBody responseBody = new DynamicResponseBody();
     private static final PostRepository postRepository = PostRepository.getInstance();
@@ -27,16 +30,20 @@ public class DynamicResponseBody {
             "</li>";
 
     private static final String userDynamic = "<li class=\"header__menu__item\">\n" +
-            "            <a class=\"btn btn_contained btn_size_s\" href=\"/article\">글쓰기</a>\n" +
-            "          </li>\n" +
-            "          <li class=\"header__menu__item\">\n" +
-            "            <form action=\"/user/logout\" method=\"POST\" class=\"form\" enctype=\"application/x-www-form-urlencoded\">\n" +
-            "\n" +
-            "              <button id=\"logout-btn\" class=\"btn btn_ghost btn_size_s\" type = \"submit\">\n" +
-            "                로그아웃\n" +
-            "              </button>\n" +
-            "            </form>\n" +
-            "          </li>";
+        "            <a class=\"btn btn_contained btn_size_s\" href=\"/user/list\">사용자 리스트</a>\n" +
+        "          </li>\n" + "<li class=\"header__menu__item\">\n" +
+        "            <a class=\"btn btn_contained btn_size_s\" href=\"/article\">글쓰기</a>\n" +
+        "          </li>\n" +
+        "          <li class=\"header__menu__item\">\n" +
+        "            <form action=\"/user/logout\" method=\"POST\" class=\"form\" enctype=\"application/x-www-form-urlencoded\">\n"
+        +
+        "\n" +
+        "              <button id=\"logout-btn\" class=\"btn btn_ghost btn_size_s\" type = \"submit\">\n" +
+        "                로그아웃\n" +
+        "              </button>\n" +
+        "            </form>\n" +
+        "          </li>";
+    private static final Logger log = LoggerFactory.getLogger(DynamicResponseBody.class);
 
     private DynamicResponseBody() {
     }
@@ -162,6 +169,13 @@ public class DynamicResponseBody {
         html = html.replace("{{dynamicButton}}", headerHtml);
         html = html.replace("{{postTitle}}", post.getTitle());
         html = html.replace("{{memberName}}", member.getName());
+        var imageName = post.getFileName();
+        var imagePath = post.getFilePath();
+        log.debug("[Post Info] {}",post);
+        if (Objects.nonNull(imageName)) {
+            var imageTag = "<img class=" + "post__img" + " src = \"" + "/post/image?filePath="+imagePath+ "\"/>";
+            html = html.replace("{{postImage}}", imageTag);
+        }
         html = html.replace("{{postContent}}", post.getContent());
 
         return html;

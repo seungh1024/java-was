@@ -2,17 +2,12 @@ package codesquad.command.domain.main;
 
 import codesquad.command.annotation.method.Command;
 import codesquad.command.annotation.method.GetMapping;
-import codesquad.command.annotation.preprocess.PreHandle;
 import codesquad.command.domain.DynamicResponseBody;
-import codesquad.command.domainResponse.HttpClientRequest;
-import codesquad.command.interceptor.AuthHandler;
+import codesquad.command.domainReqRes.HttpClientRequest;
 import codesquad.http.HttpStatus;
-import codesquad.session.Session;
-import codesquad.session.SessionUserInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
 
 @Command
 public class MainDomain {
