@@ -70,6 +70,7 @@ public class PostFileReader {
 
 			bos.write((0 + "\r\n\r\n").getBytes());
 			outputStream.write(bos.toByteArray());
+			outputStream.close();
 			outputStream.flush();
 			bos.close();
 

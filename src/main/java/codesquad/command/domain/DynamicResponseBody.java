@@ -173,8 +173,10 @@ public class DynamicResponseBody {
         var imagePath = post.getFilePath();
         log.debug("[Post Info] {}",post);
         if (Objects.nonNull(imageName)) {
-            var imageTag = "<img class=" + "post__img" + " src = \"" + "/post/image?filePath="+imagePath+ "\"/>";
+            var imageTag = "<img class=" + "post__img" + " src = \"" + "/post/image?filePath=" + imagePath + "\"/>";
             html = html.replace("{{postImage}}", imageTag);
+        } else {
+            html = html.replace("{{postImage}}", "");
         }
         html = html.replace("{{postContent}}", post.getContent());
 
