@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Map;
 
@@ -40,8 +41,20 @@ class PostDomainTest {
 
     File file;
     File outFile;
-    FileInputStream fis;
-    FileOutputStream fos;
+    InputStream fis;
+    OutputStream fos;
+
+    String httpRequestData = """
+        --Uee--r1_eDOWu7FpA0LJdLwCMLJQapQGu
+        Content-Disposition: form-data; name=title
+        Content-Type: text/plain\r\n
+        aaaa
+        --Uee--r1_eDOWu7FpA0LJdLwCMLJQapQGu
+        Content-Disposition: form-data; name=content;
+        Content-Type: text/plain\r\n
+        aaaa
+        --Uee--r1_eDOWu7FpA0LJdLwCMLJQapQGu--
+        """;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -51,11 +64,11 @@ class PostDomainTest {
             MemberRepository.getInstance().delete(findMember);
         }
         member = MemberRepository.getInstance().save(member);
-        file = new File("test.png");
+        file = new File("test.txt");
         if (!file.exists()) {
             file.createNewFile();
         }
-        fis = new FileInputStream(file);
+        fis = new ByteArrayInputStream(httpRequestData.getBytes());
 
         outFile = new File("testOut.png");
         if (!outFile.exists()) {
@@ -63,8 +76,8 @@ class PostDomainTest {
         }
         fos = new FileOutputStream(outFile);
         request = new HttpClientRequest(
-                new HttpRequest(HttpMethod.POST, "testUri", FileExtension.HTML, "http 1.1", Map.of(),
-                        Map.of(), "body",null,0,fis,fos));
+                new HttpRequest(HttpMethod.POST, "testUri", FileExtension.HTML, "http 1.1", Map.of("Content-Type","multipart/form-data; boundary=Uee--r1_eDOWu7FpA0LJdLwCMLJQapQGu"),
+                        Map.of(), "body",fis,fos));
         var userInfo = new SessionUserInfo(member.getId(), member.getMemberId(), member.getName());
         request.setUserInfo(userInfo);
     }
@@ -113,6 +126,7 @@ class PostDomainTest {
             var postContent = "testContent";
 
             // when
+            System.out.println(request.getUserInfo());
             String post = PostDomain.getInstance().createPost(request);
 
             // then

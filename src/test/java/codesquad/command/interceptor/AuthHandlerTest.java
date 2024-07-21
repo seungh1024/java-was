@@ -28,7 +28,7 @@ class AuthHandlerTest {
             SessionUserInfo sessionUserInfo = new SessionUserInfo(1,"testId", "testName");
             String sessionKey = Session.getInstance().setSession(sessionUserInfo);
             Cookie cookie = new Cookie(SESSIONKEY, sessionKey);
-            HttpRequest httpRequest = new HttpRequest(HttpMethod.GET, "/user/list", FileExtension.DYNAMIC, "HTTP/1.1", Map.of(), Map.of(SESSIONKEY,cookie), "",null,0,null,null);
+            HttpRequest httpRequest = new HttpRequest(HttpMethod.GET, "/user/list", FileExtension.DYNAMIC, "HTTP/1.1", Map.of(), Map.of(SESSIONKEY,cookie), "",null,null);
 
             // when
             boolean result = AuthHandler.getInstance().handle(httpRequest);
@@ -40,7 +40,7 @@ class AuthHandlerTest {
         @Test
         @DisplayName("로그인을 하지 않은 사용자라면 false를 리턴한다")
         void request_with_non_login_user(){
-            HttpRequest httpRequest = new HttpRequest(HttpMethod.GET, "/user/list", FileExtension.DYNAMIC, "HTTP/1.1", Map.of(), Map.of(), "",null,0,null,null);
+            HttpRequest httpRequest = new HttpRequest(HttpMethod.GET, "/user/list", FileExtension.DYNAMIC, "HTTP/1.1", Map.of(), Map.of(), "",null,null);
 
             // when
             boolean result = AuthHandler.getInstance().handle(httpRequest);

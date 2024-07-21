@@ -135,7 +135,7 @@ class MemberDomainTest {
 
 			var httpClientRequest = new HttpClientRequest(
 				new HttpRequest(HttpMethod.POST, "testUri", FileExtension.HTML, "http 1.1", Map.of(),
-					Map.of(SESSIONKEY, new Cookie("key", "value")), "body",null,0,null,null));
+					Map.of(SESSIONKEY, new Cookie("key", "value")), "body",null,null));
 			var httpClientResponse = new HttpClientResponse();
 			httpClientResponse.setCookie(SESSIONKEY, value);
 
@@ -169,7 +169,7 @@ class MemberDomainTest {
 			var sessionUserInfo = new SessionUserInfo(1, userId, userName);
 			var httpClientRequest = new HttpClientRequest(
 				new HttpRequest(HttpMethod.POST, "testUri", FileExtension.HTML, "http 1.1", Map.of(),
-					Map.of(), "body",null,0,null,null));
+					Map.of(), "body",null,null));
 			httpClientRequest.setUserInfo(sessionUserInfo);
 
 			// when

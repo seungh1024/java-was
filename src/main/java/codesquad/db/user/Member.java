@@ -33,10 +33,6 @@ public class Member {
 			});
 	}
 
-	public void characterChange() {
-
-	}
-
 	public long getId() {
 		return id;
 	}

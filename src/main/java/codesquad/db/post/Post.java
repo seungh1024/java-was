@@ -35,22 +35,23 @@ public class Post {
         XSSUtil.list.stream()
             .forEach(s -> {
                 if (title.contains(s)) {
-                    title =title.replaceAll(s,XSSUtil.map.get(s));
+                    title =title.replace(s,XSSUtil.map.get(s));
                 }
                 if (content.contains(s)) {
-                    content =content.replaceAll(s,XSSUtil.map.get(s));
+                    System.out.println("s = "+s);
+                    content =content.replace(s,XSSUtil.map.get(s));
                 }
                 if (fileName != null && fileName.contains(s)) {
-                    fileName =fileName.replaceAll(s,XSSUtil.map.get(s));
+                    fileName =fileName.replace(s,XSSUtil.map.get(s));
                 }
                 if (filePath != null && filePath.contains(s)) {
-                    filePath = filePath.replaceAll(s,XSSUtil.map.get(s));
+                    filePath = filePath.replace(s,XSSUtil.map.get(s));
                 }
             });
     }
 
     public void isValid() {
-        if (Objects.isNull(title) || Objects.isNull(content) || Objects.isNull(userId) || fileName.length() > 100 || filePath.length() > 100 || title.length() > 100) {
+        if (Objects.isNull(title) || Objects.isNull(content) || Objects.isNull(userId) || (fileName!= null && fileName.length() > 100) || (filePath != null && filePath.length() > 100) || title.length() > 100) {
             throw ClientErrorCode.INVALID_ARGUMENT.exception();
         }
     }

@@ -15,8 +15,6 @@ public record HttpRequest(
     Map<String, String> headers,
 	Map<String, Cookie> cookie,
     String body,
-	byte[] buffer,
-	int bufferIndex,
 	InputStream inputStream,
 	OutputStream outputStream
 ) {

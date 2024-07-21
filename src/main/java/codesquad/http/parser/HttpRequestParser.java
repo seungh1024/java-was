@@ -28,7 +28,6 @@ public class HttpRequestParser {
     }
 
     public HttpRequest parse() {
-        var buffer = new byte[bufferSize];
         var readSize = 0;
         var inputSize = 0;
 
@@ -37,8 +36,6 @@ public class HttpRequestParser {
         InputStream inputStream = null;
         OutputStream outputStream = null;
         int enterCheck = 0;
-        int bufferIndex = 0;
-        int endBufferIndex = 0;
 
         try {
             inputStream = clientSocket.getInputStream();
@@ -49,7 +46,7 @@ public class HttpRequestParser {
             var bos = new ByteArrayOutputStream();
             // 소켓 버퍼 데이터를 빨리 가져와야 하니 우선 outputStream으로 복사한다.
             while ((read = inputStream.read()) != -1) {
-                inputSize += readSize;
+                inputSize ++;
                 bos.write(read);
 
                 boolean flag = false;
@@ -69,10 +66,6 @@ public class HttpRequestParser {
                 if(flag){
                     break;
                 }
-                // sb.append(new String(buffer, 0, readSize));
-                // if (readSize < bufferSize) {
-                //     break;
-                // }
             }
         } catch (IOException exception) {
             log.error("[Socket Error] : 데이터를 읽어오던 중 에러 발생");
@@ -83,12 +76,12 @@ public class HttpRequestParser {
 
         String headerString = sb.toString();
 
-        return getHttpRequest(headerString, inputSize, buffer, bufferIndex, inputStream, outputStream);
+        return getHttpRequest(headerString, inputSize, inputStream, outputStream);
     }
 
 
-    public HttpRequest getHttpRequest(String headerString, int inputSize, byte[] buffer, int bufferIndex, InputStream inputStream, OutputStream outputStream) {
-        var lines = headerString.replaceAll(CR, EMPTY_STRING).split(LF);
+    public HttpRequest getHttpRequest(String headerString, int inputSize, InputStream inputStream, OutputStream outputStream) {
+        var lines = headerString.replace(CR, EMPTY_STRING).split(LF);
 
         var firstLine = lines[0].split(SPACE_SEPARATOR);
         var method = HttpMethod.fromString(firstLine[0]);
@@ -118,12 +111,12 @@ public class HttpRequestParser {
             fileExtension = FileExtension.MULTIPART;
         } else if(Objects.nonNull(contentLength)){
             log.debug("[Not Multipart Body]");
-            body = getBody(Integer.parseInt(contentLength), inputSize, buffer, bufferIndex,inputStream);
+            body = getBody(Integer.parseInt(contentLength), inputSize, inputStream);
         }
 
         if (Objects.equals(fileExtension, FileExtension.MULTIPART)) {
             try {
-                int read = inputStream.read();
+                int read = inputStream.read(); // 엔터 없애기
             } catch (Exception e) {
 
             }
@@ -137,8 +130,7 @@ public class HttpRequestParser {
             body = uriSplit[1];
         }
 
-        var httpRequest = new HttpRequest(method, uri, fileExtension, httpVersion, headers, cookies, body, buffer,
-            bufferIndex, inputStream, outputStream);
+        var httpRequest = new HttpRequest(method, uri, fileExtension, httpVersion, headers, cookies, body, inputStream, outputStream);
 
         return httpRequest;
     }
@@ -150,10 +142,8 @@ public class HttpRequestParser {
         return FileExtension.fromString(extension);
     }
 
-    public String getBody(int contentLength, int inputSize, byte[] buffer, int bufferIndex, InputStream inputStream) {
+    public String getBody(int contentLength, int inputSize, InputStream inputStream) {
         StringBuilder sb = new StringBuilder();
-
-
 
         int read = 0;
         var bos = new ByteArrayOutputStream();
@@ -177,6 +167,7 @@ public class HttpRequestParser {
         sb.append(body);
         var result = sb.toString().replace("\n", "");
 
+        log.debug("[Body] {}", body);
 
         return result;
     }
@@ -187,7 +178,7 @@ public class HttpRequestParser {
             if (Objects.equals(lines[idx], EMPTY_STRING)) {
                 break;
             }
-            var headerLine = lines[idx].replaceAll(SPACE_SEPARATOR,EMPTY_STRING);
+            var headerLine = lines[idx].replace(SPACE_SEPARATOR,EMPTY_STRING);
             if (headerLine.isEmpty()) { // 비어 있다는 것은 라인 구분자가 2개라는 것으로 header 영역이 끝난다.
                 idx++;
                 break;

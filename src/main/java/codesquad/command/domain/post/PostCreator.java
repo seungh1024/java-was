@@ -28,7 +28,7 @@ public class PostCreator {
         var buffer = new byte[BUFFER_SIZE];
         var inputStream = request.getInputStream();
         var boundary = request.getBoundary();
-
+        log.info("Boundary] {}",boundary);
 
 
         var userInfo = request.getUserInfo();
@@ -91,6 +91,8 @@ public class PostCreator {
                         var line = lineBuffer.toString();
 
                         if (lineBuffer.size()==0 && !isBody &&!isFile) {
+                            bos.reset();
+                            log.debug("[Body Start]");
                             if (content.get("type") != null) {
                                 isFile = true;
                                 isBody = false;
@@ -118,7 +120,7 @@ public class PostCreator {
                                 totalContent.put("type", fileType);
                             } else if (isBody) {
                                 var bs = bos.toString();
-                                bs = bs.replaceAll("\r", "");
+                                bs = bs.replace("\r", "");
                                 var bodyInfos = bs.split("\n\n" + boundary);
                                 var body = bodyInfos[0];
                                 var contentName = content.get("name");
@@ -136,27 +138,29 @@ public class PostCreator {
                             var dispositions = line.split("; ");
                             for (var disposition : dispositions) {
                                 if (disposition.contains("=")) {
-                                    var dispositionKeyValue = disposition.split("=");
+                                    var dispositionKeyValue = disposition.replace("\"","").split("=");
+                                    if(dispositionKeyValue.length != 2){
+                                        continue;
+                                    }
                                     var key = dispositionKeyValue[0];
-                                    var value = dispositionKeyValue[1].replaceAll("\"","");
+                                    var value = dispositionKeyValue[1].replace("\"","").replaceAll(";","");
                                     content.put(key, value);
                                 }
                             }
 
                             var fileName = content.get("filename");
                             if (fileName != null && !fileName.isEmpty()) {
+                                log.debug("[Filename] {}",fileName);
                                 var extension = fileName.substring(fileName.lastIndexOf("."));
                                 content.put("extension", extension);
                             }
 
                             log.debug("[Content Info] {}",content);
-                        } else if (line.contains("Content-Type: ")) {
+                        } else if (line.contains("Content-Type: ") && line.contains("image/")) {
                             log.debug("[Content Type] {}", line);
                             line = line.replace("Content-Type: ", "");
                             content.put("type", line);
-                            // var extension = line.substring(line.lastIndexOf("/")).replace("/",".");
-                            // content.put("extension", extension);
-                            // isFile = true;
+
                             isBody = false;
 
                             file = new File(

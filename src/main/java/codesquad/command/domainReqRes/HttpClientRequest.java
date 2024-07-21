@@ -14,8 +14,6 @@ public class HttpClientRequest {
     private Map<String, Cookie> cookies;
     private String uri;
     private SessionUserInfo userInfo;
-    private byte[] buffer;
-    private int bufferIndex;
     private InputStream inputStream;
     private OutputStream outputStream;
 
@@ -24,8 +22,6 @@ public class HttpClientRequest {
         this.headers = httpRequest.headers();
         this.cookies = httpRequest.cookie();
         this.uri = httpRequest.uri();
-        this.buffer = httpRequest.buffer();
-        this.bufferIndex = httpRequest.bufferIndex();
         this.inputStream = httpRequest.inputStream();
         this.outputStream = httpRequest.outputStream();
     }

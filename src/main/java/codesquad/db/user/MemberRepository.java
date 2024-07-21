@@ -24,7 +24,6 @@ public class MemberRepository {
 
 	public Member save(Member member) {
 		member.isValid();
-		member.characterChange();
 
 		log.info("[Member Save], member = {}",member);
 		Member originMember = findById(member.getMemberId());

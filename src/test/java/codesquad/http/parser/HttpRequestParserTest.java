@@ -41,7 +41,7 @@ class HttpRequestParserTest {
 			}
 
 			// when
-			var httpRequest = httpRequestParser.getHttpRequest("GET"+parsingData,0,buffer,0,null,null);
+			var httpRequest = httpRequestParser.getHttpRequest("GET"+parsingData,0,null,null);
 
 			// then
 			assertEquals("HTTP/1.1",httpRequest.httpVersion());
@@ -58,8 +58,7 @@ class HttpRequestParserTest {
 				+ "Connection: keep-alive\n"
 				+ "Accept: image/webp,image/apng,image/*,*/*;q=0.8\n"
 				+ "Content-Length: 4\n"
-				+ "Cookie: test=zzz; test=zzz; sessionKey=298deaad-db51-47d7-8fff-7e9dc1183fd9\n\n"
-				+ "body";
+				+ "Cookie: test=zzz; test=zzz; sessionKey=298deaad-db51-47d7-8fff-7e9dc1183fd9\n\n";
 
 			var socket = new Socket();
 			var httpRequestParser = new HttpRequestParser(socket);
@@ -69,8 +68,11 @@ class HttpRequestParserTest {
 				buffer[i] = bodyBuffer[i];
 			}
 
+			var body = "body\n";
+			var inputStream = new ByteArrayInputStream(body.getBytes());
+
 			// when
-			var httpRequest = httpRequestParser.getHttpRequest("POST"+parsingData,0,buffer,0,null,null);
+			var httpRequest = httpRequestParser.getHttpRequest("POST"+parsingData,0,inputStream,null);
 
 			// then
 			assertEquals("HTTP/1.1",httpRequest.httpVersion());
