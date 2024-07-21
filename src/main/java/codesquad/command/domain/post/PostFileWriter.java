@@ -38,25 +38,22 @@ public class PostFileWriter {
         return fileWriter;
     }
 
-    public void writeBuffer(FileOutputStream fos, byte[] buffer, int offset, int length, AtomicInteger ai){
+    public void writeBuffer(FileOutputStream fos, byte[] buffer, int offset, int length, boolean last){
         var hashCode = fos.hashCode()%100;
 
         threadPoolExecutor[hashCode].execute(()->{
             try {
-                fos.write(buffer,offset,length);
-                fos.flush();
-                int andDecrement = ai.getAndDecrement();
-                if (andDecrement == 0) {
+                if (last) {
                     fos.close();
+                } else {
+                    fos.write(buffer,offset,length);
+                    fos.flush();
                 }
-                Thread.sleep(10);
 
             } catch (IOException exception) {
                 exception.printStackTrace();
                 throw new RuntimeException(exception);
-            } catch (InterruptedException e) {
-				throw new RuntimeException(e);
-			}
+            }
 		});
 
     }
@@ -65,13 +62,10 @@ public class PostFileWriter {
         try {
             fos.write(buffer,offset,length);
             fos.flush();
-            Thread.sleep(10);
 
         } catch (IOException exception) {
             exception.printStackTrace();
             throw new RuntimeException(exception);
-        } catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
+        }
 	}
 }

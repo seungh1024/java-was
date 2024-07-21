@@ -78,7 +78,7 @@ public class PostCreator {
                             fileBos.write(buffer[i]);
                             if (fileBos.size() == BUFFER_SIZE) {
                                 ai.getAndIncrement();
-                                PostFileWriter.getInstance().writeBuffer(fos, fileBos.toByteArray(), 0, BUFFER_SIZE,ai);
+                                PostFileWriter.getInstance().writeBuffer(fos, fileBos.toByteArray(), 0, BUFFER_SIZE,false);
                                 fileBos.reset();
                             }
                         } else if(isBody) {
@@ -108,7 +108,7 @@ public class PostCreator {
                                 if (fileBos.size() - boundary.length() > 0) {
                                     ai.getAndIncrement();
                                     PostFileWriter.getInstance()
-                                        .writeBuffer(fos, fileBos.toByteArray(), 0, fileBos.size() - boundary.length(),ai);
+                                        .writeBuffer(fos, fileBos.toByteArray(), 0, fileBos.size() - boundary.length(),false);
                                     fileBos.reset();
                                 }
 
@@ -181,6 +181,7 @@ public class PostCreator {
                 }
             }
 
+            PostFileWriter.getInstance().writeBuffer(fos, buffer, 0, BUFFER_SIZE, true);
             log.debug("[Total Content]  {} ",totalContent);
 
 

@@ -31,9 +31,9 @@ public class FileIoTest {
 	@DisplayName("IO 멀티스레드 처리 테스트")
 	void ioTest() throws IOException, InterruptedException {
 
-		doMultiThreadIO(1,5);
-		Thread.sleep(1000);
-		// doSingleThreadIO(10,5);
+		doMultiThreadIO(3000,5);
+		Thread.sleep(5000);
+		doSingleThreadIO(3000,5);
 
 	}
 
@@ -53,20 +53,6 @@ public class FileIoTest {
 			iss2[i] = classLoader.getResourceAsStream("static/test/"+(i%range)+"giphy.webp");
 		}
 
-		// long start = System.currentTimeMillis();
-		// for (int i = 0; i < size; i++) {
-		// 	int readSize = 0;
-		// 	byte[] buffer= new byte[4*1024];
-		// 	try {
-		// 		while ((readSize = iss2[i].read(buffer)) != -1) {
-		// 			PostFileWriter.getInstance().writeBlockingBuffer(foss2[i],buffer,0,readSize);
-		// 		}
-		// 	} catch (Exception e) {
-		// 		e.printStackTrace();
-		// 		sequentialExceptionCount++;
-		// 	}
-		// }
-
 		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(queueCapacity));
 		CountDownLatch countDownLatch = new CountDownLatch(size);
 		AtomicInteger exceptionCount = new AtomicInteger(0);
@@ -77,14 +63,13 @@ public class FileIoTest {
 			threadPoolExecutor.execute(()->{
 				int readSize = 0;
 				byte[] buffer= new byte[4*1024];
-				var bos = new ByteArrayOutputStream();
 				try {
 					while ((readSize = iss2[idx].read(buffer)) != -1) {
 						PostFileWriter.getInstance().writeBlockingBuffer(foss2[idx],buffer,0,readSize);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
-
+					exceptionCount.getAndIncrement();
 				}finally {
 					countDownLatch.countDown();
 				}
@@ -95,6 +80,7 @@ public class FileIoTest {
 		long end = System.currentTimeMillis();
 
 		System.out.println("sequential IO time = "+(end-start));
+		System.out.println("sequentail exception count = "+exceptionCount.get());
 
 		for (int i = 0; i < size; i++) {
 			if (files2[i].exists()) {
@@ -127,6 +113,7 @@ public class FileIoTest {
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < size; i++) {
 			int idx = i;
+			var atomic = ai[idx];
 			threadPoolExecutor.execute(()->{
 				int readSize = 0;
 				byte[] buffer= new byte[4*1024];
@@ -136,10 +123,11 @@ public class FileIoTest {
 						bos.write(buffer);
 						var copyBuffer = bos.toByteArray();
 						bos.reset();
-						ai[idx].getAndIncrement();
-						PostFileWriter.getInstance().writeBuffer(foss[idx],copyBuffer,0,readSize,ai[idx]);
-
+						atomic.getAndIncrement();
+						PostFileWriter.getInstance().writeBuffer(foss[idx],copyBuffer,0,readSize,false);
 					}
+					PostFileWriter.getInstance().writeBuffer(foss[idx],buffer,0,readSize,true);
+
 				} catch (Exception e) {
 					e.printStackTrace();
 					exceptionCount.getAndIncrement();
@@ -154,13 +142,13 @@ public class FileIoTest {
 		long end = System.currentTimeMillis();
 
 		System.out.println("multi IO time = "+(end-start));
-		System.out.println(exceptionCount);
+		System.out.println("multi exception count = "+ exceptionCount.get());
 
 		for (int i = 0; i < size; i++) {
 			if (files[i].exists()) {
 				// files[i].delete();
 			}
-			foss[i].close();
+			// foss[i].close();
 		}
 	}
 }
