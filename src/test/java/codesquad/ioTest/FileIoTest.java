@@ -33,26 +33,75 @@ public class FileIoTest {
 	@Test
 	@DisplayName("IO 멀티스레드 처리 테스트")
 	void ioTest() throws IOException, InterruptedException {
-		File[] files = new File[6];
-		FileOutputStream[] foss = new FileOutputStream[6];
-		InputStream[] iss = new InputStream[6];
-		for (int i = 1; i < 6; i++) {
-			files[i] = new File(rootPath + File.separator + i+"giphy.webp");
+
+		doMultiThreadIO(3000,5);
+		Thread.sleep(1000);
+		doSingleThreadIO(3000,5);
+
+	}
+
+	void doSingleThreadIO(int size, int range) throws IOException {
+		int sequentialExceptionCount = 0;
+
+		File[] files2 = new File[size];
+		FileOutputStream[] foss2 = new FileOutputStream[size];
+		InputStream[] iss2 = new InputStream[size];
+		for (int i = 0; i < size; i++) {
+			files2[i] = new File(rootPath + File.separator + (i%range)+"giphy.webp");
+			if (!files2[i].exists()) {
+				files2[i].createNewFile();
+			}
+			foss2[i] = new FileOutputStream(files2[i]);
+			iss2[i] = classLoader.getResourceAsStream("static/test/"+(i%range)+"giphy.webp");
+		}
+
+		long start = System.currentTimeMillis();
+		for (int i = 0; i < size; i++) {
+			int readSize = 0;
+			byte[] buffer= new byte[4*1024];
+			try {
+				while ((readSize = iss2[i].read(buffer)) != -1) {
+					PostFileWriter.getInstance().writeBlockingBuffer(foss2[i],buffer,0,readSize);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				sequentialExceptionCount++;
+			}
+		}
+		long end = System.currentTimeMillis();
+
+		System.out.println("sequential IO time = "+(end-start));
+
+		for (int i = 0; i < size; i++) {
+			files2[i] = new File(rootPath + File.separator + (i%range)+"giphy.webp");
+			if (files2[i].exists()) {
+				files2[i].delete();
+			}
+			foss2[i].close();
+		}
+	}
+
+	void doMultiThreadIO(int size, int range) throws IOException, InterruptedException {
+		File[] files = new File[size];
+		FileOutputStream[] foss = new FileOutputStream[size];
+		InputStream[] iss = new InputStream[size];
+		for (int i = 0; i < size; i++) {
+			files[i] = new File(rootPath + File.separator + (i%range)+"giphy.webp");
 			if (!files[i].exists()) {
 				files[i].createNewFile();
 			}
 			foss[i] = new FileOutputStream(files[i]);
-			iss[i] = classLoader.getResourceAsStream("static/test/"+i+"giphy.webp");
+			iss[i] = classLoader.getResourceAsStream("static/test/"+(i%range)+"giphy.webp");
 		}
 
 
 		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(queueCapacity));
-		CountDownLatch countDownLatch = new CountDownLatch(5);
+		CountDownLatch countDownLatch = new CountDownLatch(size);
 		AtomicInteger exceptionCount = new AtomicInteger(0);
 		AtomicInteger ai = new AtomicInteger(0);
 
 		long start = System.currentTimeMillis();
-		for (int i = 1; i < 6; i++) {
+		for (int i = 0; i < size; i++) {
 			int idx = i;
 			threadPoolExecutor.execute(()->{
 				int readSize = 0;
@@ -83,53 +132,12 @@ public class FileIoTest {
 		System.out.println("multi IO time = "+(end-start));
 		System.out.println(exceptionCount);
 
-		Thread.sleep(1000);
-
-		for (int i = 1; i < 6; i++) {
-			files[i] = new File(rootPath + File.separator + i+"giphy.webp");
+		for (int i = 0; i < size; i++) {
+			files[i] = new File(rootPath + File.separator + (i%range)+"giphy.webp");
 			if (files[i].exists()) {
 				files[i].delete();
 			}
 			foss[i].close();
-		}
-
-
-		int sequentialExceptionCount = 0;
-
-		File[] files2 = new File[6];
-		FileOutputStream[] foss2 = new FileOutputStream[6];
-		InputStream[] iss2 = new InputStream[6];
-		for (int i = 1; i < 6; i++) {
-			files2[i] = new File(rootPath + File.separator + i+"giphy.webp");
-			if (!files2[i].exists()) {
-				files2[i].createNewFile();
-			}
-			foss2[i] = new FileOutputStream(files2[i]);
-			iss2[i] = classLoader.getResourceAsStream("static/test/"+i+"giphy.webp");
-		}
-		long sequentialStart = System.currentTimeMillis();
-		for (int i = 1; i < 6; i++) {
-			int readSize = 0;
-			byte[] buffer= new byte[4*1024];
-			try {
-				while ((readSize = iss2[i].read(buffer)) != -1) {
-					PostFileWriter.getInstance().writeBlockingBuffer(foss2[i],buffer,0,readSize);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				sequentialExceptionCount++;
-			}
-		}
-		long sequentialEnd = System.currentTimeMillis();
-
-		System.out.println("sequential IO time = "+(sequentialEnd-sequentialStart));
-
-		for (int i = 1; i < 6; i++) {
-			files2[i] = new File(rootPath + File.separator + i+"giphy.webp");
-			if (files2[i].exists()) {
-				files2[i].delete();
-			}
-			foss2[i].close();
 		}
 	}
 }
