@@ -2,11 +2,9 @@ package codesquad.ioTest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -17,7 +15,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import codesquad.command.domain.post.PostFileWriter;
-import codesquad.db.XSSUtil;
 
 public class FileIoTest {
 
@@ -34,13 +31,13 @@ public class FileIoTest {
 	@DisplayName("IO 멀티스레드 처리 테스트")
 	void ioTest() throws IOException, InterruptedException {
 
-		doMultiThreadIO(5,5);
+		doMultiThreadIO(1,5);
 		Thread.sleep(1000);
-		doSingleThreadIO(5,5);
+		// doSingleThreadIO(10,5);
 
 	}
 
-	void doSingleThreadIO(int size, int range) throws IOException {
+	void doSingleThreadIO(int size, int range) throws IOException, InterruptedException {
 		int sequentialExceptionCount = 0;
 
 		File[] files2 = new File[size];
@@ -48,26 +45,53 @@ public class FileIoTest {
 		InputStream[] iss2 = new InputStream[size];
 		for (int i = 0; i < size; i++) {
 			files2[i] = new File(rootPath + File.separator + "single/" + (i%range)+"giphy.webp");
-			if (!files2[i].exists()) {
-				files2[i].createNewFile();
+			if (files2[i].exists()) {
+				files2[i].delete();
 			}
+			files2[i].createNewFile();
 			foss2[i] = new FileOutputStream(files2[i]);
 			iss2[i] = classLoader.getResourceAsStream("static/test/"+(i%range)+"giphy.webp");
 		}
 
+		// long start = System.currentTimeMillis();
+		// for (int i = 0; i < size; i++) {
+		// 	int readSize = 0;
+		// 	byte[] buffer= new byte[4*1024];
+		// 	try {
+		// 		while ((readSize = iss2[i].read(buffer)) != -1) {
+		// 			PostFileWriter.getInstance().writeBlockingBuffer(foss2[i],buffer,0,readSize);
+		// 		}
+		// 	} catch (Exception e) {
+		// 		e.printStackTrace();
+		// 		sequentialExceptionCount++;
+		// 	}
+		// }
+
+		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue<>(queueCapacity));
+		CountDownLatch countDownLatch = new CountDownLatch(size);
+		AtomicInteger exceptionCount = new AtomicInteger(0);
+
 		long start = System.currentTimeMillis();
 		for (int i = 0; i < size; i++) {
-			int readSize = 0;
-			byte[] buffer= new byte[4*1024];
-			try {
-				while ((readSize = iss2[i].read(buffer)) != -1) {
-					PostFileWriter.getInstance().writeBlockingBuffer(foss2[i],buffer,0,readSize);
+			int idx = i;
+			threadPoolExecutor.execute(()->{
+				int readSize = 0;
+				byte[] buffer= new byte[4*1024];
+				var bos = new ByteArrayOutputStream();
+				try {
+					while ((readSize = iss2[idx].read(buffer)) != -1) {
+						PostFileWriter.getInstance().writeBlockingBuffer(foss2[idx],buffer,0,readSize);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+
+				}finally {
+					countDownLatch.countDown();
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				sequentialExceptionCount++;
-			}
+			});
 		}
+
+		countDownLatch.await();
 		long end = System.currentTimeMillis();
 
 		System.out.println("sequential IO time = "+(end-start));

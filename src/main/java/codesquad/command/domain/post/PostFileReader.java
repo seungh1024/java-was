@@ -64,13 +64,14 @@ public class PostFileReader {
 				bos.reset();
 
 				if (readSize < BUFFER_SIZE) {
+					bos.write((Integer.toHexString(0) + "\r\n\r\n").getBytes());
+					outputStream.write(bos.toByteArray());
+					outputStream.flush();
 					break;
 				}
 			}
 
-			bos.write((0 + "\r\n\r\n").getBytes());
-			outputStream.write(bos.toByteArray());
-			outputStream.flush();
+			Thread.sleep(10);
 			outputStream.close();
 			bos.close();
 
@@ -78,6 +79,8 @@ public class PostFileReader {
 		} catch (IOException exception) {
 			exception.printStackTrace();
 			throw ServerErrorCode.INTERNAL_SERVER_ERROR.exception();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		}
 
 	}

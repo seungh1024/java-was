@@ -118,6 +118,10 @@ public class ConnectionHandler {
                     if (response.headers().get("chunked") == null) {
                         doResponse(clientSocket, response);
                     } else {
+                        log.debug("IMAGE!");
+                        while (clientSocket.isConnected()) {
+
+                        }
                         return;
                     }
                 } else {

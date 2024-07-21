@@ -49,12 +49,15 @@ public class PostFileWriter {
                 if (andDecrement == 0) {
                     fos.close();
                 }
+                Thread.sleep(10);
 
             } catch (IOException exception) {
                 exception.printStackTrace();
                 throw new RuntimeException(exception);
-            }
-        });
+            } catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
+		});
 
     }
 
@@ -62,10 +65,13 @@ public class PostFileWriter {
         try {
             fos.write(buffer,offset,length);
             fos.flush();
+            Thread.sleep(10);
 
         } catch (IOException exception) {
             exception.printStackTrace();
             throw new RuntimeException(exception);
-        }
-    }
+        } catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
 }
