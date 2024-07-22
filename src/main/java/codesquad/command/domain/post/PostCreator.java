@@ -181,7 +181,9 @@ public class PostCreator {
                 }
             }
 
-            PostFileWriter.getInstance().writeBuffer(fos, buffer, 0, BUFFER_SIZE, true);
+            if (fos != null) {
+                PostFileWriter.getInstance().writeBuffer(fos, buffer, 0, BUFFER_SIZE, true);
+            }
             log.debug("[Total Content]  {} ",totalContent);
 
 
