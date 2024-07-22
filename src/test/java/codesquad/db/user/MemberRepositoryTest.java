@@ -1,5 +1,6 @@
 package codesquad.db.user;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import codesquad.exception.CustomException;
 import codesquad.exception.client.ClientErrorCode;
 import codesquad.session.Session;
@@ -13,7 +14,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MemberRepositoryTest {
+class MemberRepositoryTest extends DBUtil {
 
 	MemberRepository memberRepository = MemberRepository.getInstance();
 

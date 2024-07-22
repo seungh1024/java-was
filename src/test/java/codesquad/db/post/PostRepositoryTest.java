@@ -1,5 +1,6 @@
 package codesquad.db.post;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import codesquad.command.domain.post.PostDomain;
 import codesquad.db.user.Member;
 import codesquad.db.user.MemberRepository;
@@ -14,7 +15,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PostRepositoryTest {
+class PostRepositoryTest extends DBUtil {
 
     MemberRepository memberRepository = MemberRepository.getInstance();
     PostRepository postRepository = PostRepository.getInstance();

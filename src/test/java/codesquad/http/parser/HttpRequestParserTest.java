@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import codesquad.util.FileExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class HttpRequestParserTest {
+class HttpRequestParserTest extends DBUtil {
 
 
 

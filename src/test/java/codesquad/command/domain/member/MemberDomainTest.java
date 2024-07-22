@@ -3,6 +3,7 @@ package codesquad.command.domain.member;
 import java.util.List;
 import java.util.Map;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import codesquad.command.domain.DynamicResponseBody;
 import codesquad.db.user.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,7 +26,7 @@ import codesquad.util.FileExtension;
 import static codesquad.util.StringUtils.SESSIONKEY;
 import static org.junit.jupiter.api.Assertions.*;
 
-class MemberDomainTest {
+class MemberDomainTest extends DBUtil {
 
 	String userId = "testId";
 	String password = "password";

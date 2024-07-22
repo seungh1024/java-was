@@ -1,11 +1,8 @@
 package codesquad.db.util;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Objects;
 
-import codesquad.db.post.Post;
-import codesquad.db.post.PostAndMember;
 import codesquad.db.user.MemberRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +59,7 @@ public class DBConnectionUtil {
 		try {
 			var connection = DriverManager.getConnection(ConnectionConst.URL, ConnectionConst.USERNAME,
 				ConnectionConst.PASSWORD);
+
 			log.info("[Connection]  connection info = {}, class = {}", connection, connection.getClass());
 			return connection;
 		} catch (SQLException exception) {

@@ -2,6 +2,7 @@ package codesquad.db;
 
 import java.sql.Connection;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import codesquad.db.util.DBConnectionUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DBConnectionUtilTest {
+class DBConnectionUtilTest extends DBUtil {
 
 	@Nested
 	@DisplayName("H2 DB Connection Test")

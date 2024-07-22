@@ -1,5 +1,6 @@
 package codesquad.command.interceptor;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import codesquad.http.request.format.HttpMethod;
 import codesquad.http.request.format.HttpRequest;
 import codesquad.session.Cookie;
@@ -15,7 +16,7 @@ import java.util.Map;
 import static codesquad.util.StringUtils.SESSIONKEY;
 import static org.junit.jupiter.api.Assertions.*;
 
-class AuthHandlerTest {
+class AuthHandlerTest extends DBUtil {
 
     @Nested
     @DisplayName("사용자 인증 테스트")

@@ -1,5 +1,6 @@
 package codesquad.command.model;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import codesquad.db.user.MemberRepository;
 import codesquad.db.user.Member;
 import codesquad.exception.CustomException;
@@ -13,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MemberTest {
+class MemberTest extends DBUtil {
 
 
     String userId = "testId";

@@ -1,11 +1,12 @@
 package codesquad.session;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class SessionTest {
+class SessionTest extends DBUtil {
 
 	@Test
 	@DisplayName("세션 생성, 조회, 삭제 테스트")

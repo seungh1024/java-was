@@ -1,12 +1,13 @@
 package codesquad.util;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileExtensionTest {
+class FileExtensionTest extends DBUtil {
 
     @Nested
     @DisplayName("파일 확장자 검색 테스트")

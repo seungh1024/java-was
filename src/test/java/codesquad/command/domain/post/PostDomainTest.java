@@ -1,5 +1,6 @@
 package codesquad.command.domain.post;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import codesquad.command.domain.DynamicResponseBody;
 import codesquad.command.domainReqRes.HttpClientRequest;
 import codesquad.db.post.Post;
@@ -29,7 +30,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class PostDomainTest {
+class PostDomainTest extends DBUtil {
 
     String userId = "testId";
     String password = "password";

@@ -11,12 +11,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import ch.qos.logback.core.db.dialect.DBUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import codesquad.command.domain.post.PostFileWriter;
 
-public class FileIoTest {
+public class FileIoTest extends DBUtil {
 
 	ClassLoader classLoader = getClass().getClassLoader();
 

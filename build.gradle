@@ -19,7 +19,6 @@ application {
 dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.32'
     implementation 'ch.qos.logback:logback-classic:1.2.6'
-    // https://mvnrepository.com/artifact/com.h2database/h2
     runtimeOnly 'com.h2database:h2:2.2.224'
 
 
