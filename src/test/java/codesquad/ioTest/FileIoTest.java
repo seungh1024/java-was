@@ -31,9 +31,9 @@ public class FileIoTest {
 	@DisplayName("IO 멀티스레드 처리 테스트")
 	void ioTest() throws IOException, InterruptedException {
 
-		doMultiThreadIO(3000,5);
+		doMultiThreadIO(5,5);
 		Thread.sleep(5000);
-		doSingleThreadIO(3000,5);
+		doSingleThreadIO(5,5);
 
 	}
 
