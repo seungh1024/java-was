@@ -30,7 +30,18 @@ public class FileIoTest {
 	@Test
 	@DisplayName("IO 멀티스레드 처리 테스트")
 	void ioTest() throws IOException, InterruptedException {
-
+		File file = new File(rootPath);
+		if(!file.exists()){
+			file.mkdirs();
+		}
+		File multiFile = new File(rootPath+File.separator+"multi");
+		File singleFile = new File(rootPath + File.separator + "single");
+		if (!multiFile.exists()) {
+			multiFile.mkdirs();
+		}
+		if (!singleFile.exists()) {
+			singleFile.mkdirs();
+		}
 		doMultiThreadIO(5,5);
 		Thread.sleep(5000);
 		doSingleThreadIO(5,5);
